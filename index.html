@@ -232,7 +232,7 @@ select,input[type=number]{font-size:1.05rem}
 "use strict";
 /* TEACHER: paste your notebook Google Doc link (or just its ID) between the quotes.
    Students then get a link that forces their own copy. The doc must be shared as "Anyone with the link can view". */
-const NOTES_DOC='';
+const NOTES_DOC='https://docs.google.com/document/d/1gdey5k9WSnVV0w28PgPfthF9Fw-XcZn4IzvLYEU_eeU/edit';
 const docCopy=()=>{const m=/\/d\/([\w-]{20,})/.exec(NOTES_DOC)||/^([\w-]{20,})$/.exec(NOTES_DOC.trim());return m?`https://docs.google.com/document/d/${m[1]}/copy`:''};
 function docLink(){const u=docCopy();return u?`<a class="doclink" href="${u}" target="_blank" rel="noopener">📓 Open the notebook Google Doc (makes your own copy)</a>`:`<span class="teach-only">Teacher: no notebook Google Doc is linked yet. Paste its link into NOTES_DOC at the top of the page script.</span>`}
 /* ---------- helpers ---------- */
