@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Equation Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500..800,0..100&family=Nunito:wght@400;600;700;800&family=Caveat:wght@600&family=STIX+Two+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Single light theme by design (always sand, even if the viewer uses dark mode). Palette idea: sunlit sand paper, ocean-teal accents, forest-green ink, marigold sun. Stitched card edges, leaf meters, and a garden that blooms as stations are checked. */
+  --bg:#f2e5c8; --grid:rgba(214,112,112,.20); --plum:#8a5aa0;
+  --paper:#f8f0dd; --card:#fffaf0; --ink:#2b3d30; --muted:#667058;
+  --accent:#2f7f84; --on-accent:#ffffff; --hot:#b86e00; --good:#3f7a3a; --line:#e2d3b0;
+  --sun:#f6c453; --sea:#cfe6e2; --sand:#ecd9b4; --stitch:#c9b88f; --leaf:#d6e7c4;
+  --glow1:rgba(246,196,83,.40); --glow2:rgba(111,177,170,.28);
+  --disp:'Fraunces',Georgia,serif;
+  --body:'Nunito',system-ui,sans-serif;
+  --hand:'Caveat','Comic Sans MS',cursive;
+  --math:'STIX Two Text','Cambria Math',Georgia,serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:32px 32px}
+.wrap{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:16px 16px 60px}
+h1,h2,h3,h4{font-family:var(--disp);line-height:1.15;text-wrap:balance;margin:0;font-variation-settings:"SOFT" 100}
+h2{font-size:clamp(1.5rem,3.5vw,2.1rem);font-weight:700}
+h3{font-size:1.15rem;font-weight:700;color:var(--accent)}
+h4{font-size:1.1rem;margin:22px 0 8px}
+a{color:var(--accent)}
+button,select,input,textarea{font:inherit;color:var(--ink)}
+button{cursor:pointer;border:2px solid var(--ink);background:var(--card);padding:.4rem .9rem;border-radius:999px;font-weight:700}
+button:hover:not(:disabled){background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+button.pri{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+button.pri:hover:not(:disabled){background:var(--good);border-color:var(--good);color:#fff}
+button.ghost{border-color:var(--stitch);font-weight:600}
+:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
+.f-direct{--fc:var(--good);--fb:#dcebc9;--fp:#3f7a3a}
+.f-link{--fc:var(--accent);--fb:#d0e6e2;--fp:#2a7479}
+.f-stretch{--fc:var(--hot);--fb:#f8e4ae;--fp:#9a5b00}
+.f-fun{--fc:var(--plum);--fb:#e7daee;--fp:#7d4f94}
+.fitkey{background:var(--card);border:2px solid var(--stitch);border-radius:24px;padding:16px clamp(14px,3vw,24px) 18px;margin:6px 0 22px;box-shadow:0 5px 0 var(--stitch)}
+.fitkey h2{font-size:clamp(1.4rem,4vw,1.9rem);margin-bottom:10px}
+.fkgrid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.fk{display:grid;gap:2px;padding:12px 16px;border-radius:16px;background:var(--fb);border:2px solid var(--fc);border-left-width:10px}
+.fk .fkn{font-family:var(--disp);font-weight:800;font-size:1.35rem;line-height:1.15;font-variation-settings:"SOFT" 100}
+.fk .fkd{font-size:1.1rem;font-weight:600}
+section.sec{margin-top:22px;padding-top:14px;border-top:2px dashed var(--stitch)}
+.ctls{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 22px;margin:10px 0}
+.sl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;font-size:.95rem;font-weight:600}
+.sl input{grid-column:1/-1;width:100%;accent-color:var(--accent)}
+.sl output{font-family:var(--disp);font-weight:800}
+.cv{display:block;width:100%;height:auto;max-width:100%;background:var(--paper);border:2px solid var(--stitch);border-radius:18px;margin-bottom:6px}
+.readout{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:10px 14px;margin:8px 0;font-size:1rem}
+.readout .big{font-family:var(--disp);font-weight:800;font-size:1.25rem}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center}
+.chk{display:flex;gap:6px;align-items:center;font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:8px 0}
+select,input[type=number]{border:2px solid var(--ink);border-radius:12px;padding:.35rem .6rem;background:var(--card)}
+input[type=number]{width:6.5em}
+.q{font-weight:800;margin:6px 0 10px;font-size:1.05rem}
+.opts{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.opt{text-align:left;font-weight:600;border-radius:16px}
+.opt.right{background:var(--good);color:#fff;border-color:var(--good)}
+.opt.wrong{border-color:var(--hot);text-decoration:line-through;opacity:.8}
+.fb{min-height:1.5em;margin:8px 0 0}
+textarea{width:100%;min-height:84px;border:2px solid var(--stitch);border-radius:16px;padding:8px 12px;background:var(--paper);resize:vertical}
+.think p{margin:8px 0;font-size:1.08rem;max-width:66ch}
+.teach{display:none;margin-top:18px;background:var(--leaf);border-radius:16px;padding:10px 16px;font-size:.95rem}
+body.teacher .teach{display:block}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:22px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;vertical-align:-1px;border:1.5px solid var(--ink)}
+.sw.g{background:var(--good)}.sw.b{background:var(--accent)}.sw.h{background:var(--hot)}
+.coll{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.coll span{font-size:.88rem;border:1.5px solid var(--good);border-radius:999px;padding:2px 10px;background:var(--leaf)}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.seg button{font-weight:600;padding:.3rem .75rem}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pill{display:inline-block;padding:1px 12px;border-radius:999px;background:var(--good);color:#fff;font-weight:800}
+.under{margin-top:36px}
+.under h2{margin-bottom:10px}
+.note-small{font-size:.9rem;color:var(--muted);max-width:80ch}
+.book pre{white-space:pre-wrap;background:var(--card);border:2px dashed var(--stitch);border-radius:18px;padding:14px;font-family:var(--body);font-size:.95rem}
+.teach-only{display:none}
+body.teacher .teach-only{display:inline;color:var(--good);font-weight:800}
+.doclink{font-weight:800}
+sup,sub{line-height:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:520px){body{font-size:16px}.gbadge{width:54px;height:54px;font-size:1.8rem}.sun{width:120px;height:120px}}
+/* ---------- multi-page layout: left rail, one page at a time ---------- */
+body{font-size:18px}
+[data-g="g7"]{--tint:var(--sea);--bc:var(--accent);--bt:#fff}
+[data-g="g8"]{--tint:#fbe6ad;--bc:var(--sun);--bt:#2b3d30}
+[data-g="s1"]{--tint:var(--leaf);--bc:var(--good);--bt:#fff}
+[data-g="s2"]{--tint:#f1d9d2;--bc:#a9565f;--bt:#fff}
+.app{position:relative;z-index:1;display:grid;grid-template-columns:276px minmax(0,1fr);min-height:100vh}
+.rail{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:22px 16px 26px;background:rgba(255,250,240,.94);border-right:3px dashed var(--stitch)}
+.brand{display:block;font:800 1.7rem/1.1 var(--disp);color:var(--ink);text-decoration:none;margin:0 4px 12px;font-variation-settings:"SOFT" 100}
+.btn{display:inline-block;text-decoration:none;border:2px solid var(--ink);background:var(--card);color:var(--ink);padding:.6rem 1.2rem;border-radius:999px;font-weight:800;font-size:1.05rem;line-height:1.25}
+.btn:hover{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.pri:hover{background:var(--good);border-color:var(--good);color:#fff}
+.btn.ghost{border-color:var(--stitch);font-weight:700}
+.railhome{display:block;text-align:center;margin-bottom:18px}
+.rail ol{list-style:none;margin:0;padding:0}
+.rg{display:flex;gap:10px;align-items:center;padding:8px;border-radius:16px;color:var(--ink);text-decoration:none;font-weight:800;font-size:1.05rem}
+.rg:hover,li.current>.rg{background:var(--tint)}
+.rg .dot{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--bc);color:var(--bt);font:italic 700 1.2rem var(--math);flex:none}
+.rg .cnt{margin-left:auto;font-size:.9rem;color:var(--muted)}
+.rs{list-style:none;margin:2px 0 12px 20px;padding:0 0 0 12px;border-left:3px dotted var(--stitch)}
+.rs a{display:block;padding:5px 8px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:.95rem;font-weight:600;line-height:1.3}
+.rs a:hover{background:var(--leaf)}
+.rs li.current a{background:var(--sun);font-weight:800}
+.rnote{display:block;margin:14px 0 4px;padding:8px;border-radius:14px;color:var(--ink);font-weight:800;text-decoration:none}
+.rnote:hover{background:var(--sea)}
+.rail .prog{margin:10px 8px;font-size:.95rem;color:var(--muted);font-weight:700}
+main{padding:34px clamp(16px,4vw,56px) 90px;max-width:1060px;width:100%}
+main:focus{outline:none}
+.eyebrow{font:800 .85rem var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.lede{font-size:1.3rem;max-width:56ch;margin:14px 0 18px}
+.hero{position:relative;overflow:hidden;padding:30px clamp(18px,4vw,38px) 28px;border-radius:28px;background:linear-gradient(120deg,var(--sand),var(--sea));outline:2px dashed var(--stitch);outline-offset:-9px;margin-bottom:24px}
+.hero h1{font-size:clamp(2.6rem,8vw,5rem);font-weight:800;letter-spacing:-.01em;position:relative}
+.hero .lede,.hero .eyebrow,.hero .garden,.hero .prog{position:relative}
+.sun{position:absolute;right:-34px;top:-34px;width:190px;height:190px;opacity:.9;animation:spin 90s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.floaties{position:absolute;inset:0;pointer-events:none;font-family:var(--math);font-style:italic;color:var(--good);opacity:.26;font-size:2.2rem}
+.floaties span{position:absolute}
+.garden{display:flex;flex-wrap:wrap;gap:0 3px;max-width:420px;font-size:1.6rem;line-height:1.4}
+.slot{opacity:.4;filter:grayscale(.8)}
+.slot.on{opacity:1;filter:none;animation:pop .45s ease-out}
+@keyframes pop{0%{transform:scale(.3) rotate(-20deg)}70%{transform:scale(1.35)}100%{transform:scale(1)}}
+.prog{font-family:var(--disp);font-size:1.3rem;font-weight:800}
+.sech{margin:30px 0 14px}
+.gcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin:8px 0 34px}
+.gcard{display:grid;grid-template-columns:auto 1fr;gap:8px 20px;align-items:center;padding:26px;border-radius:28px;border:2px solid var(--stitch);background:linear-gradient(120deg,var(--tint),var(--card) 92%);box-shadow:0 8px 0 var(--stitch);color:var(--ink);text-decoration:none;min-height:210px}
+.gcard:hover{filter:brightness(.97);transform:translateY(-2px)}
+.gbadge{display:grid;place-items:center;width:84px;height:84px;border-radius:50%;background:var(--bc);color:var(--bt);font:italic 700 2.8rem var(--math);border:3px solid var(--card);box-shadow:0 0 0 2px var(--bc)}
+.gtitle{display:block;font:800 clamp(1.7rem,3.4vw,2.3rem)/1.1 var(--disp);font-variation-settings:"SOFT" 100}
+.gsub{display:block;color:var(--muted);font-weight:600;font-size:1.1rem;margin-top:4px}
+.gfoot{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:1.3rem}
+.gfoot b{font-family:var(--disp);font-size:1rem}
+.gpill{font:800 .9rem var(--body);background:var(--card);border:2px solid var(--stitch);border-radius:999px;padding:4px 14px}
+.seed{opacity:.35;filter:grayscale(.8)}
+.crumbs{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-weight:700;margin-bottom:6px}
+.crumbs .crumb{color:var(--accent);font-weight:800}
+.crumbs .here{color:var(--muted)}
+.st-head{display:flex;gap:20px;align-items:flex-end;margin:20px 0 18px}
+.num{font:800 clamp(72px,13vw,132px)/.8 var(--disp);color:var(--bc,var(--accent));opacity:.9;letter-spacing:-.04em}
+h2{font-size:clamp(2rem,5vw,3.1rem);font-weight:800}
+.meta{margin:8px 0 0;color:var(--muted);font-weight:700;font-size:1.05rem}
+.prose{max-width:62ch}
+.hook{font-size:1.35rem;line-height:1.5;margin:8px 0 18px}
+.depth{background:var(--leaf);border-radius:24px;padding:22px clamp(16px,3vw,28px);margin:22px 0}
+.depth h3{margin-bottom:6px}
+.eqbig{font-family:var(--math);font-style:italic;font-size:clamp(1.5rem,4.5vw,2.4rem);margin:10px 0;padding:16px 20px;border-radius:18px;background:var(--paper);border:2px dashed var(--stitch);overflow-x:auto}
+.plain{font-size:1.2rem;font-weight:700;margin:6px 0 0}
+.panel,.lab{background:var(--card);border:2px solid var(--stitch);border-radius:24px;padding:24px clamp(16px,3vw,30px);margin:24px 0;box-shadow:0 6px 0 var(--stitch)}
+.lab{border-left:10px solid var(--accent)}
+.panel h3,.lab h3{font-size:1.5rem;margin-bottom:12px;color:var(--ink)}
+.tag{font:800 .8rem var(--body);letter-spacing:.1em;text-transform:uppercase;background:var(--sea);color:var(--accent);padding:4px 10px;border-radius:8px;margin-right:10px;vertical-align:middle}
+.stds{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}
+.stds li{background:var(--paper);border:2px solid var(--stitch);border-radius:14px;padding:10px 16px;font-size:1.08rem}
+.stds b{font-family:var(--disp)}
+.fit{display:inline-flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;font-size:1rem;font-weight:600;background:var(--fb);border:2px solid var(--fc);border-left-width:10px;border-radius:14px;padding:3px 14px;color:var(--ink)}
+.fit b{font-family:var(--disp);font-weight:800}
+.tier{display:flex;align-items:center;gap:6px 12px;margin:30px 0 14px;padding:0;background:none;border:0}
+.tier::after{content:"";flex:1 1 30px;min-width:30px;border-top:3px dotted var(--fp);opacity:.7}
+.tier .tname{background:var(--fp);color:#fff;border-radius:999px;padding:7px 20px;font-family:var(--body);font-weight:800;font-size:1rem;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.tier .tdesc{font-size:1.1rem;font-weight:700;color:var(--ink)}
+.slist{display:grid;gap:14px}
+.scard{display:grid;grid-template-columns:auto 1fr auto;gap:6px 18px;align-items:center;padding:20px 24px;border:2px solid var(--fc);border-left-width:12px;border-radius:22px;background:var(--fb);color:var(--ink);text-decoration:none}
+.scard:hover{filter:brightness(.97);transform:translateY(-2px)}
+.sico{font-size:2.6rem;line-height:1}
+.stitle{display:block;font:700 clamp(1.4rem,3vw,1.9rem)/1.15 var(--disp);font-variation-settings:"SOFT" 100}
+.splain{display:block;font-size:1.12rem;font-weight:600;opacity:.88;margin-top:3px}
+.sside{display:grid;gap:2px;text-align:right;font-weight:700;font-size:1rem}
+.slab{font-family:var(--disp);font-weight:800;font-size:1.1rem}
+.pager{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:36px}
+.opts{grid-template-columns:1fr}
+.opt{font-size:1.1rem;padding:.75rem 1.2rem}
+.q{font-size:1.25rem}
+.fb{font-size:1.1rem}
+.sl{font-size:1.05rem}
+.readout{font-size:1.12rem;padding:12px 16px}
+.btns button,.row button,.seg button{font-size:1.05rem;padding:.5rem 1.1rem}
+select,input[type=number]{font-size:1.05rem}
+.think p{font-size:1.2rem}
+.teach{font-size:1.05rem;padding:14px 18px}
+.under{margin-top:0}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .rail{position:static;height:auto;border-right:0;border-bottom:3px dashed var(--stitch);padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+  .brand{margin:0}
+  .railhome{margin:0}
+  .rail ol{display:flex;gap:6px;overflow-x:auto;width:100%;order:5}
+  .rg{padding:6px 10px;white-space:nowrap}
+  .rg .cnt{margin-left:4px}
+  .rs{display:none}
+  .rnote{margin:0;padding:6px 8px}
+  .rail .prog{display:none}
+  .rail .chk{margin-left:auto}
+  .gcards{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .scard{grid-template-columns:auto 1fr}
+  .sside{grid-column:1/-1;text-align:left;display:flex;gap:6px 14px;flex-wrap:wrap}
+  .gcard{min-height:0}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail" aria-label="Equation Lab navigation">
+    <a class="brand" href="#home">🌿 Equation Lab</a>
+    <a class="btn pri railhome" href="#home" id="railhome">← Main page</a>
+    <ol id="railList"></ol>
+    <a class="rnote" href="#notebook">📓 Lab notebook</a>
+    <p class="prog" id="railProg" aria-live="polite"></p>
+    <label class="chk"><input type="checkbox" id="tchk"> 🍎 Teacher notes</label>
+  </nav>
+  <main id="stage" tabindex="-1"></main>
+</div>
+
+<script>
+"use strict";
+/* TEACHER: paste your notebook Google Doc link (or just its ID) between the quotes.
+   Students then get a link that forces their own copy. The doc must be shared as "Anyone with the link can view". */
+const NOTES_DOC='';
+const docCopy=()=>{const m=/\/d\/([\w-]{20,})/.exec(NOTES_DOC)||/^([\w-]{20,})$/.exec(NOTES_DOC.trim());return m?`https://docs.google.com/document/d/${m[1]}/copy`:''};
+function docLink(){const u=docCopy();return u?`<a class="doclink" href="${u}" target="_blank" rel="noopener">📓 Open the notebook Google Doc (makes your own copy)</a>`:`<span class="teach-only">Teacher: no notebook Google Doc is linked yet. Paste its link into NOTES_DOC at the top of the page script.</span>`}
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const col=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const V=id=>+document.getElementById(id).value;
+const f=(n,d=2)=>String(+(+n).toFixed(d));
+const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const C=(n,k)=>{let r=1;for(let i=1;i<=k;i++)r=r*(n-k+i)/i;return Math.round(r)};
+function sci(x,dp=2){if(x===0)return '0';let e=Math.floor(Math.log10(Math.abs(x)));let m=x/Math.pow(10,e);if(+m.toFixed(dp)>=10){m/=10;e++}return `${+m.toFixed(dp)} × 10<sup>${e}</sup>`}
+function mkCanvas(w,h,label){const c=document.createElement('canvas');c.width=w*2;c.height=h*2;c.className='cv';c.style.aspectRatio=w+'/'+h;c.setAttribute('role','img');c.setAttribute('aria-label',label||'Interactive drawing');const x=c.getContext('2d');x.scale(2,2);return [c,x]}
+function sl(id,label,min,max,step,val,unit=''){return `<label class="sl" for="${id}"><span>${label}</span><output id="${id}o"></output><input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${val}" data-u="${unit}"></label>`}
+function bind(ids,fn){ids.forEach(i=>{const e=document.getElementById(i),o=document.getElementById(i+'o');const up=()=>{if(o)o.textContent=e.value+(e.dataset.u||'')};e.addEventListener('input',()=>{up();fn()});up()})}
+function loop(c,fn){let last=performance.now(),paused=RM;function tick(t){if(!c.isConnected)return;const dt=Math.min(.05,(t-last)/1000);last=t;fn(paused?0:dt);requestAnimationFrame(tick)}requestAnimationFrame(tick);return{get paused(){return paused},toggle(){paused=!paused;return paused}}}
+function pauseBtn(lp,btn){btn.textContent=lp.paused?'Play':'Pause';btn.onclick=()=>{btn.textContent=lp.toggle()?'Play':'Pause'}}
+const fmtN=n=>n<0?'−'+(-n):''+n;
+
+/* ---------- state ---------- */
+let done=LS.get('eqlab-done',{}),notes=LS.get('eqlab-notes',{}),cur=1;
+
+/* ---------- station builders ---------- */
+/* 1 Pythagoras */
+function b1(p){
+  const [c,x]=mkCanvas(620,350,'A right triangle with a square drawn on each of its three sides');
+  p.innerHTML=`<div class="ctls">${sl('pa','Side a',1,12,1,3)}${sl('pb','Side b',1,12,1,4)}</div><div class="readout" id="r1"></div><div class="readout" id="f1"></div>`;
+  p.prepend(c);
+  const found=new Set();
+  function draw(){
+    const a=V('pa'),b=V('pb'),s=8,x0=190,y0=232;
+    x.clearRect(0,0,620,350);
+    const ink=col('--ink'),ac=col('--accent'),hot=col('--hot'),gd=col('--good');
+    const poly=(pts,fill,al)=>{x.beginPath();pts.forEach((q,i)=>i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1]));x.closePath();x.globalAlpha=al;x.fillStyle=fill;x.fill();x.globalAlpha=1;x.strokeStyle=ink;x.lineWidth=1.5;x.stroke()};
+    const A=[x0+b*s,y0],B=[x0,y0-a*s],n=[a*s,-b*s];
+    poly([[x0,y0],[x0+b*s,y0],[x0+b*s,y0+b*s],[x0,y0+b*s]],ac,.35);
+    poly([[x0,y0],[x0,y0-a*s],[x0-a*s,y0-a*s],[x0-a*s,y0]],gd,.35);
+    poly([A,B,[B[0]+n[0],B[1]+n[1]],[A[0]+n[0],A[1]+n[1]]],hot,.35);
+    poly([[x0,y0],A,B],ink,.12);
+    x.strokeStyle=ink;x.lineWidth=1.5;x.strokeRect(x0,y0-10,10,10);
+    x.fillStyle=ink;x.font='700 15px system-ui';x.textAlign='center';x.textBaseline='middle';
+    if(b>=5)x.fillText('b² = '+b*b,x0+b*s/2,y0+b*s/2);
+    if(a>=5)x.fillText('a² = '+a*a,x0-a*s/2,y0-a*s/2);
+    const c2=a*a+b*b;
+    if(Math.sqrt(c2)>=5)x.fillText('c² = '+c2,(A[0]+B[0]+n[0])/2,(A[1]+B[1]+n[1])/2);
+    const cc=Math.sqrt(c2),int=Number.isInteger(cc);
+    if(int)found.add(Math.min(a,b)+'-'+Math.max(a,b)+'-'+cc);
+    $('#r1').innerHTML=`<span class="sw g"></span>a² = ${a*a} &nbsp; + &nbsp; <span class="sw b"></span>b² = ${b*b} &nbsp; = &nbsp; <span class="sw h"></span>c² = ${c2}<br><span class="big">c = ${int?cc:'√'+c2+' ≈ '+f(cc,2)}</span> ${int?'<span class="pill">whole-number triple</span>':''}`;
+    $('#f1').innerHTML=`🔍 <b>Triple hunt</b> (sides up to 12): ${[0,1,2,3].map(i=>i<found.size?'🌻':'🌱').join(' ')} <b>${found.size}/4</b>${found.size?'<br>'+[...found].sort().map(k=>k.replace(/-(\d+)$/,' → c = $1')).join(' · '):''}`;
+  }
+  bind(['pa','pb'],draw);draw();
+}
+/* 2 Logarithms */
+function b2(p){
+  const L=[['your thumb (2 cm)',20],['a textbook (4 cm)',40],['a tall person (1.7 m)',1.7e3],['a 10-story building (30 m)',3e4],['the Burj Khalifa (828 m)',8.28e5],['Mount Everest (8,849 m)',8.849e6],['the edge of space (100 km)',1e8],['the Moon (384,400 km)',3.844e11]];
+  const len=mm=>mm<10?f(mm,2)+' mm':mm<1000?f(mm/10,1)+' cm':mm<1e6?f(mm/1000,1)+' m':Math.round(mm/1e6).toLocaleString()+' km';
+  p.innerHTML=`<h4>A. Fold it</h4><div class="ctls">${sl('fn','Number of folds',0,45,1,7)}</div><div class="readout" id="r2a"></div>
+  <h4>B. Flip the question</h4><div class="row"><label for="tg">How many folds to reach</label><select id="tg">${L.slice(2).map((l,i)=>`<option value="${i+2}">${l[0]}</option>`).join('')}</select><span>?</span></div><div class="readout" id="r2b"></div>
+  <h4>C. The shortcut behind logs</h4><div class="ctls">${sl('ea','Exponent a',0,10,1,3)}${sl('eb','Exponent b',0,10,1,5)}</div><div class="readout" id="r2c"></div>`;
+  function A(){const n=V('fn'),t=0.1*2**n;let beat=[...L].reverse().find(l=>t>=l[1]);
+    $('#r2a').innerHTML=`2<sup>${n}</sup> = ${(2**n).toLocaleString()} layers of 0.1 mm paper<br><span class="big">Stack height: ${len(t)}</span><br>${beat?'Taller than '+beat[0]+'.':'Still thinner than your thumb.'} <span class="note-small">(Real paper this size can be folded only about 7 to 12 times, but the math does not care.)</span>`}
+  function B(){const l=L[+$('#tg').value],r=l[1]/0.1,ex=Math.log2(r);$('#r2b').innerHTML=`We need 0.1 mm × 2<sup>n</sup> ≥ ${sci(l[1],3)} mm, so 2<sup>n</sup> ≥ ${sci(r,3)}.<br>n = log<sub>2</sub>(${sci(r,3)}) ≈ ${f(ex,1)} <span class="big">→ ${Math.ceil(ex)} folds</span>`}
+  function Cc(){const a=V('ea'),b=V('eb');$('#r2c').innerHTML=`2<sup>${a}</sup> × 2<sup>${b}</sup> = ${2**a} × ${2**b} = <b>${(2**(a+b)).toLocaleString()}</b><br>Shortcut: add the exponents. ${a} + ${b} = ${a+b}, and 2<sup>${a+b}</sup> = ${(2**(a+b)).toLocaleString()}. <br><span class="note-small">That is log(xy) = log x + log y in disguise: logs are exponents, and multiplying becomes adding.</span>`}
+  bind(['fn'],A);bind(['ea','eb'],Cc);$('#tg').onchange=B;A();B();Cc();
+}
+/* 3 Calculus */
+function b3(p){
+  const [c,x]=mkCanvas(620,320,'Graph of distance equals time squared with a line through two points that squeeze together');
+  const H=[2,1,.5,.1,.01,.001];
+  p.innerHTML=`<div class="ctls">${sl('ct','Moment t (seconds)',1,5,.5,3)}<label class="sl" for="ch"><span>Gap h (smaller to the right)</span><output id="cho"></output><input id="ch" type="range" min="0" max="5" step="1" value="0"></label></div><div class="readout" id="r3"></div>`;
+  p.prepend(c);
+  function draw(){
+    const t=V('ct'),h=H[V('ch')];$('#cho').textContent=h+' s';
+    const X=u=>40+u*80,Y=d=>290-d*5.6,ink=col('--ink'),ac=col('--accent'),hot=col('--hot'),ln=col('--line'),mu=col('--muted');
+    x.clearRect(0,0,620,320);x.lineWidth=1;x.strokeStyle=ln;x.fillStyle=mu;x.font='12px system-ui';x.textAlign='center';
+    for(let u=0;u<=7;u++){x.beginPath();x.moveTo(X(u),10);x.lineTo(X(u),290);x.stroke();x.fillText(u,X(u),305)}
+    x.textAlign='right';for(let d=0;d<=40;d+=10){x.beginPath();x.moveTo(40,Y(d));x.lineTo(610,Y(d));x.stroke();x.fillText(d,34,Y(d)+4)}
+    x.textAlign='left';x.fillText('time (s)',560,318);x.fillText('distance (m)',44,16);
+    x.strokeStyle=ink;x.lineWidth=2.5;x.beginPath();for(let u=0;u<=7.001;u+=.05){const px=X(u),py=Y(u*u);u?x.lineTo(px,py):x.moveTo(px,py)}x.stroke();
+    const m=((t+h)**2-t**2)/h;
+    x.save();x.beginPath();x.rect(40,8,570,282);x.clip();x.strokeStyle=hot;x.lineWidth=2.5;x.beginPath();x.moveTo(X(0),Y(t*t+m*(0-t)));x.lineTo(X(7),Y(t*t+m*(7-t)));x.stroke();x.restore();
+    x.fillStyle=ac;[[t,t*t],[t+h,(t+h)**2]].forEach(q=>{x.beginPath();x.arc(X(q[0]),Y(q[1]),6,0,7);x.fill()});
+    $('#r3').innerHTML=`Between t = ${t} s and t = ${f(t+h,3)} s the car covers ${f((t+h)**2-t**2,4)} m.<br>Average speed = ${f((t+h)**2-t**2,4)} ÷ ${h} = <span class="big">${f(m,3)} m/s</span><br>Squeeze h toward zero and the speed settles on one number. That number is the speed <i>at</i> t = ${t}.`;
+  }
+  bind(['ct'],draw);$('#ch').addEventListener('input',draw);draw();
+}
+/* 4 Gravity */
+function b4(p){
+  const [c,x]=mkCanvas(620,250,'Curve showing gravity pull dropping as distance grows');
+  p.innerHTML=`<div class="ctls">${sl('gm','Your mass (kg)',20,90,5,45)}${sl('gd','Distance from Earth’s center (1 = standing on the ground)',1,8,.5,1)}</div><div class="readout" id="r4"></div>`;
+  p.prepend(c);
+  function draw(){
+    const m=V('gm'),d=V('gd'),X=u=>50+(u-1)*(520/7),Y=r=>215-r*170,ink=col('--ink'),hot=col('--hot'),ln=col('--line'),mu=col('--muted');
+    x.clearRect(0,0,620,250);x.font='12px system-ui';x.fillStyle=mu;x.strokeStyle=ln;x.lineWidth=1;
+    x.textAlign='center';for(let u=1;u<=8;u++){x.beginPath();x.moveTo(X(u),30);x.lineTo(X(u),215);x.stroke();x.fillText(u,X(u),232)}
+    x.textAlign='right';[0,.25,.5,.75,1].forEach(r=>{x.beginPath();x.moveTo(50,Y(r));x.lineTo(570,Y(r));x.stroke();x.fillText(r*100+'%',44,Y(r)+4)});
+    x.textAlign='left';x.fillText('distance (Earth radii)',440,246);x.fillText('pull compared with the ground',54,20);
+    x.strokeStyle=ink;x.lineWidth=2.5;x.beginPath();for(let u=1;u<=8.001;u+=.05){const px=X(u),py=Y(1/(u*u));u>1?x.lineTo(px,py):x.moveTo(px,py)}x.stroke();
+    x.fillStyle=hot;x.beginPath();x.arc(X(d),Y(1/(d*d)),7,0,7);x.fill();
+    $('#r4').innerHTML=`Pull on you: 9.8 × ${m} ÷ ${d}<sup>2</sup> = <span class="big">${f(9.8*m/(d*d),1)} newtons</span> (${f(100/(d*d),1)}% of the ground pull).<br>Try d = 1, 2, 4: the pull goes 100%, 25%, 6.25%. Doubling the distance divides the pull by 2², which is 4.`;
+  }
+  bind(['gm','gd'],draw);draw();
+}
+/* 5 imaginary numbers */
+function b5(p){
+  const [c,x]=mkCanvas(340,340,'A number plane showing a point being rotated a quarter turn each time you multiply by i');
+  c.style.maxWidth='340px';
+  p.innerHTML=`<div class="btns"><button id="mi" class="pri">× i</button><button id="mm">× −1</button><button id="mr" class="ghost">Reset to 3 + 2i</button></div><div class="readout" id="r5"></div>`;
+  p.prepend(c);
+  let z=[3,2],trail=[[3,2]],turns=0;
+  const cx=(a,b)=>`${fmtN(a)} ${b<0?'−':'+'} ${Math.abs(b)}i`;
+  function draw(msg){
+    const S=30,O=170,ink=col('--ink'),ac=col('--accent'),hot=col('--hot'),ln=col('--line'),mu=col('--muted');
+    x.clearRect(0,0,340,340);x.strokeStyle=ln;x.lineWidth=1;x.fillStyle=mu;x.font='11px system-ui';x.textAlign='center';
+    for(let k=-5;k<=5;k++){x.beginPath();x.moveTo(O+k*S,10);x.lineTo(O+k*S,330);x.stroke();x.beginPath();x.moveTo(10,O+k*S);x.lineTo(330,O+k*S);x.stroke();if(k&&Math.abs(k)<=5){x.fillText(k,O+k*S,O+14);x.textAlign='right';x.fillText(k+'i',O-4,O-k*S+4);x.textAlign='center'}}
+    x.strokeStyle=ink;x.lineWidth=2;x.beginPath();x.moveTo(10,O);x.lineTo(330,O);x.moveTo(O,10);x.lineTo(O,330);x.stroke();
+    x.fillStyle=mu;trail.forEach(q=>{x.beginPath();x.arc(O+q[0]*S,O-q[1]*S,4,0,7);x.fill()});
+    x.strokeStyle=ac;x.lineWidth=3;x.beginPath();x.moveTo(O,O);x.lineTo(O+z[0]*S,O-z[1]*S);x.stroke();
+    x.fillStyle=hot;x.beginPath();x.arc(O+z[0]*S,O-z[1]*S,7,0,7);x.fill();
+    $('#r5').innerHTML=msg||`Now at <span class="big">${cx(z[0],z[1])}</span> (right ${z[0]}, up ${z[1]}).`;
+  }
+  $('#mi').onclick=()=>{const [a,b]=z;z=[-b,a];turns++;trail.push(z.slice());draw(`(${cx(a,b)}) × i = ${fmtN(a)}i + ${fmtN(b)}i² = ${fmtN(a)}i + ${fmtN(b)}(−1) = <span class="big">${cx(z[0],z[1])}</span><br>A quarter-turn counterclockwise: (x, y) → (−y, x).${turns%4===2?'<br><b>Two quarter-turns is a half-turn, so i × i = −1.</b>':''}${turns%4===0?'<br><b>Four quarter-turns bring you home: i⁴ = 1.</b>':''}`)};
+  $('#mm').onclick=()=>{z=[-z[0],-z[1]];trail.push(z.slice());draw(`Multiplying by −1 flips both signs: a half-turn about the center. Now at <span class="big">${cx(z[0],z[1])}</span>.`)};
+  $('#mr').onclick=()=>{z=[3,2];trail=[[3,2]];turns=0;draw()};
+  draw();
+}
+/* 6 Euler polyhedra */
+function b6(p){
+  const prism=(n,h)=>{const R=1/Math.sin(Math.PI/n),v=[];for(let k=0;k<n;k++){const t=2*Math.PI*k/n;v.push([R*Math.cos(t),-h/2,R*Math.sin(t)])}for(let k=0;k<n;k++){const t=2*Math.PI*k/n;v.push([R*Math.cos(t),h/2,R*Math.sin(t)])}return v};
+  const q=Math.SQRT2,r=Math.SQRT1_2;
+  const S=[
+    {n:'Cube',F:6,v:[[1,1,1],[1,1,-1],[1,-1,1],[1,-1,-1],[-1,1,1],[-1,1,-1],[-1,-1,1],[-1,-1,-1]]},
+    {n:'Tetrahedron',F:4,v:[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]]},
+    {n:'Octahedron',F:8,v:[[q,0,0],[-q,0,0],[0,q,0],[0,-q,0],[0,0,q],[0,0,-q]]},
+    {n:'Triangular prism',F:5,v:prism(3,2)},
+    {n:'Square pyramid',F:5,v:[[1,-r,1],[1,-r,-1],[-1,-r,1],[-1,-r,-1],[0,r,0]]},
+    {n:'Pentagonal prism',F:7,v:prism(5,2)}
+  ];
+  S.forEach(s=>{let mn=1e9;const d=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);for(let i=0;i<s.v.length;i++)for(let j=i+1;j<s.v.length;j++)mn=Math.min(mn,d(s.v[i],s.v[j]));s.e=[];for(let i=0;i<s.v.length;i++)for(let j=i+1;j<s.v.length;j++)if(d(s.v[i],s.v[j])<mn*1.0001)s.e.push([i,j])});
+  const [c,x]=mkCanvas(620,300,'A spinning wireframe of a solid shape with its corners marked');
+  p.innerHTML=`<div class="seg" id="sg">${S.map((s,i)=>`<button data-i="${i}" aria-pressed="${i===0}">${s.n}</button>`).join('')}</div>
+  <div class="btns"><label class="chk"><input type="checkbox" id="lab"> Number the corners</label><button id="spin" class="ghost"></button></div>
+  <div class="row"><label for="nv">Corners (V)</label><input type="number" id="nv" min="0" max="30"><label for="ne">Edges (E)</label><input type="number" id="ne" min="0" max="40"><label for="nf">Faces (F)</label><input type="number" id="nf" min="0" max="30"></div>
+  <div class="btns"><button id="ck" class="pri">Check my counts</button><button id="rv">Show me the counts</button></div>
+  <div class="readout" id="r6">Count the corners, edges, and flat faces, then check. Faces are the flat sides, including the bottom.</div><div class="coll" id="coll"></div>`;
+  p.prepend(c);
+  let si=0,ay=.6,spin=!RM;const coll={};
+  const s=()=>S[si];
+  function showCounts(){const z=s();coll[z.n]=`${z.n}: ${z.v.length} − ${z.e.length} + ${z.F} = ${z.v.length-z.e.length+z.F}`;$('#coll').innerHTML=Object.values(coll).map(t=>`<span>${t}</span>`).join('');}
+  $('#sg').onclick=ev=>{const b=ev.target.closest('button');if(!b)return;si=+b.dataset.i;[...$('#sg').children].forEach(k=>k.setAttribute('aria-pressed',k===b));['nv','ne','nf'].forEach(i=>$('#'+i).value='');$('#r6').textContent='Count the corners, edges, and flat faces, then check.'};
+  $('#spin').textContent=spin?'Pause spin':'Spin';$('#spin').onclick=()=>{spin=!spin;$('#spin').textContent=spin?'Pause spin':'Spin'};
+  $('#ck').onclick=()=>{const z=s(),a=+$('#nv').value,b=+$('#ne').value,d=+$('#nf').value;const ok=[a===z.v.length,b===z.e.length,d===z.F];
+    if(ok.every(Boolean)){showCounts();$('#r6').innerHTML=`All three right. <span class="big">${a} − ${b} + ${d} = ${a-b+d}</span>. Try another shape. Does it ever come out different?`}
+    else $('#r6').textContent=`Check again: corners ${ok[0]?'✓':'✗'}, edges ${ok[1]?'✓':'✗'}, faces ${ok[2]?'✓':'✗'}. Turn on “Number the corners” to count carefully.`};
+  $('#rv').onclick=()=>{const z=s();$('#nv').value=z.v.length;$('#ne').value=z.e.length;$('#nf').value=z.F;showCounts();$('#r6').innerHTML=`${z.n}: V = ${z.v.length}, E = ${z.e.length}, F = ${z.F}. <span class="big">${z.v.length} − ${z.e.length} + ${z.F} = ${z.v.length-z.e.length+z.F}</span>`};
+  loop(c,dt=>{
+    if(spin)ay+=dt*.7;
+    const z=s(),sc=78,ink=col('--ink'),ac=col('--accent'),hot=col('--hot');
+    const pr=P=>{const cy=Math.cos(ay),sy=Math.sin(ay),x1=P[0]*cy+P[2]*sy,z1=-P[0]*sy+P[2]*cy,ct=Math.cos(.5),st=Math.sin(.5);return[310+x1*sc,150-(P[1]*ct-z1*st)*sc,P[1]*st+z1*ct]};
+    const pts=z.v.map(pr);x.clearRect(0,0,620,300);x.strokeStyle=ink;x.lineWidth=2;
+    z.e.forEach(e=>{x.beginPath();x.moveTo(pts[e[0]][0],pts[e[0]][1]);x.lineTo(pts[e[1]][0],pts[e[1]][1]);x.stroke()});
+    pts.forEach((q,i)=>{x.fillStyle=hot;x.beginPath();x.arc(q[0],q[1],5,0,7);x.fill();if($('#lab')&&$('#lab').checked){x.fillStyle=ac;x.font='700 13px system-ui';x.fillText(i+1,q[0]+8,q[1]-8)}});
+  });
+}
+/* 7 Galton board */
+function b7(p){
+  const W=620,H=380,[c,x]=mkCanvas(W,H,'A ball-drop pegboard building a bell-shaped pile of balls');
+  p.innerHTML=`<div class="ctls">${sl('rows','Rows of pegs',4,14,1,10)}</div><div class="btns"><button id="d1" class="pri">Drop 1</button><button id="d25">Drop 25</button><button id="d500">Drop 500 instantly</button><button id="rs" class="ghost">Reset</button><label class="chk"><input type="checkbox" id="th"> Show the math prediction</label></div><div class="readout" id="r7"></div>`;
+  p.prepend(c);
+  let n=10,bins=[],balls=[],total=0,pend=0,fr=0;
+  const reset=()=>{n=V('rows');bins=Array(n+1).fill(0);balls=[];total=0;pend=0};
+  reset();
+  bind(['rows'],reset);
+  const add=k=>{pend+=k};
+  $('#d1').onclick=()=>add(1);$('#d25').onclick=()=>add(25);$('#rs').onclick=reset;
+  $('#d500').onclick=()=>{for(let i=0;i<500;i++){let k=0;for(let r=0;r<n;r++)k+=Math.random()<.5?0:1;bins[k]++;total++}};
+  loop(c,dt=>{
+    const dx=Math.min(40,(W-40)/(n+1)),top=14,bot=235,rh=(bot-top)/n,ink=col('--ink'),ac=col('--accent'),hot=col('--hot'),mu=col('--muted');
+    if(!RM||true){fr++;if(pend>0&&fr%2===0){pend--;balls.push({r:0,k:0,f:0,b:Math.random()<.5?0:1})}}
+    balls.forEach(b=>{b.f+=0.2+(pend>5?.2:0);if(b.f>=1){b.k+=b.b;b.r++;b.f=0;b.b=Math.random()<.5?0:1;if(b.r>=n){bins[b.k]++;total++;b.dead=true}}});
+    balls=balls.filter(b=>!b.dead);
+    x.clearRect(0,0,W,H);x.fillStyle=mu;
+    for(let r=0;r<n;r++)for(let k=0;k<=r;k++){x.beginPath();x.arc(W/2+(k-r/2)*dx,top+(r+.5)*rh,2.5,0,7);x.fill()}
+    x.fillStyle=hot;balls.forEach(b=>{const bx=W/2+(b.k-b.r/2)*dx+(b.b-.5)*dx*b.f,by=top+(b.r+b.f)*rh;x.beginPath();x.arc(bx,by,5,0,7);x.fill()});
+    const mx=Math.max(1,...bins),unit=Math.min(12,115/Math.max(10,mx));
+    x.strokeStyle=ink;x.lineWidth=1;x.beginPath();x.moveTo(10,H-14);x.lineTo(W-10,H-14);x.stroke();
+    bins.forEach((v,k)=>{const bx=W/2+(k-n/2)*dx,h=v*unit;x.fillStyle=ac;x.globalAlpha=.8;x.fillRect(bx-dx*.4,H-14-h,dx*.8,h);x.globalAlpha=1});
+    if($('#th')&&$('#th').checked&&total>0){x.fillStyle=ink;bins.forEach((v,k)=>{const e=total*C(n,k)/2**n,bx=W/2+(k-n/2)*dx;x.beginPath();x.arc(bx,H-14-e*unit,4,0,7);x.fill()})}
+    $('#r7').innerHTML=`Balls dropped: <b>${total}</b>. Each bounce is a fair coin flip: left or right.<br>The far-left bin needs ${n} lefts in a row: a 1 in ${(2**n).toLocaleString()} chance per ball. The middle bin has the most paths to reach it.`;
+  });
+}
+/* 8 Wave equation */
+function b8(p){
+  const [c,x]=mkCanvas(620,260,'An animated wave with its wavelength marked');
+  p.innerHTML=`<div class="ctls">${sl('wf','Frequency f (waves per second)',.5,4,.5,2)}${sl('wl','Wavelength λ (meters)',1,8,.5,3)}${sl('wa','Height (amplitude)',.2,1,.1,.6)}</div><div class="readout" id="r8"></div><div class="btns"><button id="pz" class="ghost"></button><button id="nt" class="pri">New speed target</button></div><div class="readout" id="t8"></div>`;
+  p.prepend(c);
+  let t=0,target=6;
+  bind(['wf','wl','wa'],()=>{});
+  const lp=loop(c,dt=>{
+    t+=dt;const fq=V('wf'),l=V('wl'),A=V('wa'),ink=col('--ink'),ac=col('--accent'),hot=col('--hot');
+    x.clearRect(0,0,620,260);x.strokeStyle=ink;x.lineWidth=3;x.beginPath();
+    for(let px=0;px<=620;px+=3){const m=px/62,y=125-A*100*Math.sin(2*Math.PI*(m/l-fq*t*.25));px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke();
+    x.strokeStyle=hot;x.lineWidth=2;const a=.5*62,b=(.5+l)*62;x.beginPath();x.moveTo(a,236);x.lineTo(b,236);x.moveTo(a,228);x.lineTo(a,244);x.moveTo(b,228);x.lineTo(b,244);x.stroke();
+    x.fillStyle=hot;x.font='700 14px system-ui';x.textAlign='center';x.fillText('λ = '+l+' m',(a+b)/2,222);
+    const v=fq*l;$('#r8').innerHTML=`speed = f × λ = ${fq} × ${l} = <span class="big">${f(v,2)} m/s</span> <span class="note-small">(shown in slow motion, ×0.25)</span>`;
+    $('#t8').innerHTML=v===target?`<span class="pill">Locked in!</span> You made a ${target} m/s wave. Can you find a different f and λ that also work?`:`Target: make a wave that travels at <b>${target} m/s</b>. Right now: ${f(v,2)} m/s.`;
+  });
+  pauseBtn(lp,$('#pz'));
+  $('#nt').onclick=()=>{const o=[4,6,8,9,12];let n;do{n=o[Math.floor(Math.random()*o.length)]}while(n===target);target=n};
+}
+/* 9 Fourier */
+function b9(p){
+  const [c,x]=mkCanvas(620,300,'A wave built by adding six simple waves');
+  const ids=[1,2,3,4,5,6].map(n=>'h'+n);
+  p.innerHTML=`<div class="btns"><button data-pre="0">Pure wave</button><button data-pre="1">Square wave</button><button data-pre="2">Sawtooth wave</button><button data-pre="3" class="ghost">Clear</button></div><div class="ctls">${ids.map((id,i)=>sl(id,'Ingredient '+(i+1)+' (wave with '+(i+1)+' bumps)',-1,1,.01,i?0:1)).join('')}</div><div class="readout" id="r9"></div>`;
+  p.prepend(c);
+  const PRE=[[1,0,0,0,0,0],[1,0,1/3,0,1/5,0],[1,-1/2,1/3,-1/4,1/5,-1/6],[0,0,0,0,0,0]];
+  function draw(){
+    const a=ids.map(V),ink=col('--ink'),hot=col('--hot'),ln=col('--line'),mu=col('--muted');
+    x.clearRect(0,0,620,300);const Y=v=>150-v*80,X=u=>10+u/(4*Math.PI)*600;
+    x.strokeStyle=ln;x.lineWidth=1;[-1,0,1].forEach(v=>{x.beginPath();x.moveTo(10,Y(v));x.lineTo(610,Y(v));x.stroke()});
+    x.strokeStyle=mu;x.lineWidth=1;x.globalAlpha=.5;a.forEach((am,i)=>{if(!am)return;x.beginPath();for(let u=0;u<=4*Math.PI;u+=.05){const y=Y(am*Math.sin((i+1)*u));u?x.lineTo(X(u),y):x.moveTo(X(u),y)}x.stroke()});x.globalAlpha=1;
+    x.strokeStyle=hot;x.lineWidth=3.5;x.beginPath();for(let u=0;u<=4*Math.PI;u+=.03){let s=0;a.forEach((am,i)=>s+=am*Math.sin((i+1)*u));const y=Y(Math.max(-1.7,Math.min(1.7,s)));u?x.lineTo(X(u),y):x.moveTo(X(u),y)}x.stroke();
+    $('#r9').innerHTML=`<b style="color:var(--hot)">Thick line</b> = the sum of all your ingredients. <span class="note-small">Thin gray lines are the ingredients on their own.</span>`;
+  }
+  const set=a=>{ids.forEach((id,i)=>{$('#'+id).value=a[i];$('#'+id+'o').textContent=$('#'+id).value});draw()};
+  p.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>set(PRE[+b.dataset.pre]));
+  bind(ids,draw);set(PRE[1]);
+}
+/* 10 Navier-Stokes (continuity) */
+function b10(p){
+  const [c,x]=mkCanvas(620,260,'Particles flowing through a pipe that narrows in the middle');
+  p.innerHTML=`<div class="ctls">${sl('pd','Diameter of the narrow part (cm)',3,10,.5,5,' cm')}</div><div class="btns"><button id="pz" class="ghost"></button></div><div class="readout" id="r10"></div><p class="note-small">The full Navier–Stokes equations describe every swirl and splash. This station shows one thing they tell us: how much water passes each spot per second must stay the same.</p>`;
+  p.prepend(c);
+  const D0=110,N=170,P=[];for(let i=0;i<N;i++)P.push({x:Math.random()*620,u:Math.random()*1.8-.9});
+  const Wf=(px,r)=>{const d=Math.abs(px-310);const b=d<140?.5*(1+Math.cos(Math.PI*d/140)):0;return D0*(1-(1-r)*b)};
+  const lp=loop(c,dt=>{
+    const dd=V('pd'),r=dd/10,ink=col('--ink'),ac=col('--accent');
+    P.forEach(q=>{const w=Wf(q.x,r);q.x+=70*(D0/w)**2*dt;if(q.x>620){q.x-=620;q.u=Math.random()*1.8-.9}});
+    x.clearRect(0,0,620,260);x.beginPath();for(let px=0;px<=620;px+=4)px?x.lineTo(px,130-Wf(px,r)/2):x.moveTo(px,130-Wf(px,r)/2);for(let px=620;px>=0;px-=4)x.lineTo(px,130+Wf(px,r)/2);x.closePath();x.globalAlpha=.1;x.fillStyle=ac;x.fill();x.globalAlpha=1;x.strokeStyle=ink;x.lineWidth=3;x.stroke();
+    P.forEach(q=>{const w=Wf(q.x,r),t=Math.min(1,((D0/w)**2-1)/10);x.fillStyle=`hsl(${220-200*t},80%,55%)`;x.beginPath();x.arc(q.x,130+q.u*w/2,3,0,7);x.fill()});
+    const a0=Math.PI*25,a1=Math.PI*(dd/2)**2;
+    $('#r10').innerHTML=`Wide part: diameter 10 cm → area π × 5<sup>2</sup> ≈ ${f(a0,0)} cm² → speed 1 m/s<br>Narrow part: diameter ${dd} cm → area π × ${dd/2}<sup>2</sup> ≈ ${f(a1,0)} cm² → speed <span class="big">${f(a0/a1,2)} m/s</span><br>Half the diameter means one quarter of the area, so the water moves 4 times as fast.`;
+  });
+  pauseBtn(lp,$('#pz'));
+}
+/* 11 Maxwell */
+function b11(p){
+  const [c,x]=mkCanvas(620,220,'A magnet moving through a coil that lights a bulb');
+  const D=[['the Moon',3.844e8],['Mars at its closest',5.46e10],['the Sun',1.496e11],['Proxima Centauri, the nearest star',4.0e16]];
+  p.innerHTML=`<h4>A. Make electricity</h4><div class="ctls">${sl('mt','Turns of wire in the coil',1,10,1,4)}${sl('ms','Magnet speed',1,10,1,3)}</div>
+  <div class="btns"><button id="pz" class="ghost"></button><button id="nt" class="pri">New voltage target</button></div><div class="readout" id="r11"></div><div class="readout" id="g11"></div>
+  <h4>B. Light is an electromagnetic wave</h4><div class="row"><label for="lt">How long does light take to reach</label><select id="lt">${D.map((d,i)=>`<option value="${i}">${d[0]}</option>`).join('')}</select><span>?</span></div><div class="readout" id="r11b"></div>`;
+  p.prepend(c);
+  let ph=0,target=24,foundC={};
+  const T=[12,16,18,24,30,36];
+  function ways(t){const w=[];for(let a=1;a<=10;a++)for(let b=1;b<=10;b++)if(a*b===t)w.push(a+'×'+b);return w}
+  function info(){const t=V('mt'),s=V('ms'),v=t*s;const key=t+'×'+s;if(v===target){(foundC[target]=foundC[target]||new Set()).add(key)}
+    const fnd=foundC[target]?[...foundC[target]]:[];
+    $('#r11').innerHTML=`Voltage = turns × speed = ${t} × ${s} = <span class="big">${v} volts</span> <span class="note-small">(a simplified model with made-up units)</span>`;
+    $('#g11').innerHTML=`🎯 Goal: <b>${target} V</b> ${ways(target).map((_,i)=>i<fnd.length?'🌻':'🌱').join(' ')} <b>${fnd.length}/${ways(target).length}</b>${fnd.length?'<br>'+fnd.join(', '):''} ${v===target?'<span class="pill">Hit!</span>':''}`}
+  function light(){const d=D[+$('#lt').value][1],s=d/3e8,nice=s<120?f(s,2)+' seconds':s<7200?f(s/60,1)+' minutes':s<172800?f(s/3600,1)+' hours':s<1e7?f(s/86400,1)+' days':f(s/3.156e7,1)+' years';
+    $('#r11b').innerHTML=`time = distance ÷ speed = ${sci(d)} m ÷ (3 × 10<sup>8</sup> m/s) = ${sci(s)} s<br><span class="big">≈ ${nice}</span><br><span class="note-small">Maxwell’s equations predicted waves of electricity and magnetism moving at about 3 × 10<sup>8</sup> m/s. That matched the measured speed of light, so light is one of those waves.</span>`}
+  bind(['mt','ms'],info);$('#lt').onchange=light;
+  $('#nt').onclick=()=>{let n;do{n=T[Math.floor(Math.random()*T.length)]}while(n===target);target=n;info()};
+  info();light();
+  const lp=loop(c,dt=>{
+    const t=V('mt'),s=V('ms'),v=t*s,ink=col('--ink'),ac=col('--accent'),hot=col('--hot'),gd=col('--good');ph+=dt*s*.6;
+    x.clearRect(0,0,620,220);
+    const mx=310+190*Math.sin(ph);
+    x.strokeStyle=ink;x.lineWidth=2;for(let i=0;i<t;i++){const cxp=310-((t-1)*7)/2+i*7;x.beginPath();x.ellipse(cxp,125,9,34,0,0,7);x.stroke()}
+    x.fillStyle=hot;x.fillRect(mx-45,110,45,30);x.fillStyle=ac;x.fillRect(mx,110,45,30);x.fillStyle='#fff';x.font='700 15px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('N',mx-22,125);x.fillText('S',mx+22,125);
+    x.strokeStyle=ink;x.lineWidth=2;x.beginPath();x.moveTo(310,91);x.lineTo(310,64);x.stroke();
+    const g=Math.min(1,v/100);x.globalAlpha=.15+.85*g;x.fillStyle='#ffd23f';x.beginPath();x.arc(310,40,14+g*10,0,7);x.fill();x.globalAlpha=1;x.strokeStyle=ink;x.beginPath();x.arc(310,40,18,0,7);x.stroke();
+    x.fillStyle=ink;x.font='13px system-ui';x.fillText('bulb brightness follows the voltage',310,205);
+  });
+  pauseBtn(lp,$('#pz'));
+}
+/* 12 Second law */
+function b12(p){
+  const W=620,H=330,[c,x]=mkCanvas(W,H,'Gas particles spreading between two halves of a box and a tally of how often each split happens');
+  p.innerHTML=`<div class="ctls">${sl('np','Number of particles',1,24,1,8)}</div><div class="btns"><button id="al">Put all on the left</button><button id="b1" class="pri">Let them bounce</button><button id="b10k">Bounce 10,000 times</button></div><div class="readout" id="r12"></div>`;
+  p.prepend(c);
+  let n=8,pos=[],hist=[],trials=0,allL=0;
+  const place=left=>{pos=[];for(let i=0;i<n;i++){const l=left(i);pos.push({l,x:(l?30:320)+Math.random()*260,y:20+Math.random()*130})}};
+  const cnt=()=>pos.filter(q=>q.l).length;
+  const resetAll=()=>{n=V('np');hist=Array(n+1).fill(0);trials=0;allL=0;place(()=>true);draw()};
+  const bounce=()=>{place(()=>Math.random()<.5);const k=cnt();hist[k]++;trials++;if(k===n)allL++};
+  function draw(){
+    const ink=col('--ink'),ac=col('--accent'),hot=col('--hot'),ln=col('--line'),mu=col('--muted');
+    x.clearRect(0,0,W,H);x.strokeStyle=ink;x.lineWidth=2.5;x.strokeRect(20,10,580,150);x.setLineDash([6,5]);x.beginPath();x.moveTo(310,10);x.lineTo(310,160);x.stroke();x.setLineDash([]);
+    pos.forEach(q=>{x.fillStyle=q.l?ac:hot;x.beginPath();x.arc(q.x,q.y+10,6,0,7);x.fill()});
+    const mx=Math.max(1,...hist),bw=Math.min(36,560/(n+1));x.fillStyle=mu;x.font='12px system-ui';x.textAlign='center';x.fillText('How many particles were on the left each time? (tally of bounces)',310,184);
+    hist.forEach((v,k)=>{const bx=310+(k-n/2)*bw,h=v/mx*95;x.fillStyle=k===n?hot:ac;x.globalAlpha=.85;x.fillRect(bx-bw*.4,310-h,bw*.8,h);x.globalAlpha=1;x.fillStyle=mu;if(n<=24)x.fillText(k,bx,324)});
+    $('#r12').innerHTML=`Left side right now: <b>${cnt()}</b> of ${n}. Chance that all ${n} are on the left after a bounce: (1/2)<sup>${n}</sup> = <span class="big">1 in ${(2**n).toLocaleString()}</span><br>Bounces so far: ${trials.toLocaleString()}. All-left happened: <b>${allL}</b> time${allL===1?'':'s'}. <span class="note-small">The red bar is the all-left case.</span>`;
+  }
+  $('#al').onclick=()=>{place(()=>true);draw()};
+  $('#b1').onclick=()=>{bounce();draw()};
+  $('#b10k').onclick=()=>{for(let i=0;i<10000;i++){let k=0;for(let j=0;j<n;j++)if(Math.random()<.5)k++;hist[k]++;trials++;if(k===n)allL++}bounce();draw()};
+  bind(['np'],resetAll);resetAll();
+}
+/* 13 E = mc^2 */
+function b13(p){
+  const I=[['a paperclip (1 g)',.001],['a US penny (2.5 g)',.0025],['an apple (100 g)',.1],['a textbook (1 kg)',1]];
+  p.innerHTML=`<div class="row"><label for="it">Pick an object</label><select id="it">${I.map((o,i)=>`<option value="${i}">${o[0]}</option>`).join('')}</select></div>
+  <div class="readout">The speed of light is c = 3 × 10<sup>8</sup> m/s. So c² = 9 × 10<sup>?</sup>. Fill in the exponent:
+  <div class="row"><span>c² = 9 × 10<sup>x</sup>, x =</span><input type="number" id="ex" min="0" max="40"><button id="exb" class="pri">Check</button></div><div id="exfb" aria-live="polite"></div></div>
+  <div class="readout" id="r13" hidden></div>`;
+  let ok=false;
+  function show(){if(!ok)return;const m=I[+$('#it').value][1],E=m*9e16,tnt=E/4.184e9,homes=E/3.78e10;
+    const t=tnt>=1000?f(tnt/1000,1)+' kilotons of TNT':f(tnt,1)+' tons of TNT';
+    $('#r13').hidden=false;$('#r13').innerHTML=`E = m × c² = ${m} kg × 9 × 10<sup>16</sup> = <span class="big">${sci(E)} joules</span><br>That is roughly ${t}, or about ${homes>10?Math.round(homes).toLocaleString():f(homes,1)} average US homes’ electricity for a year.<br><span class="note-small">This is the maximum. Real reactions convert only a tiny fraction of an object’s mass, which is why a paperclip is safe to hold. The numbers are rounded estimates.</span>`}
+  $('#exb').onclick=()=>{const v=+$('#ex').value;if(v===16){ok=true;$('#exfb').innerHTML='<b>Yes.</b> (3 × 10<sup>8</sup>)<sup>2</sup> = 9 × 10<sup>16</sup>. Square the 3, double the exponent.';show()}else $('#exfb').textContent='Not yet. Square the 3, then double the exponent 8.'};
+  $('#it').onchange=show;
+}
+/* 14 Schrodinger */
+function b14(p){
+  const W=620,H=330,[c,x]=mkCanvas(W,H,'Dots landing on a screen and a histogram that grows into a wave-shaped pattern');
+  p.innerHTML=`<div class="ctls">${sl('qn','Energy level n',1,4,1,1)}</div><div class="btns"><button id="f1" class="pri">Fire 1</button><button id="f50">Fire 50</button><button id="f1k">Fire 1,000</button><button id="rs" class="ghost">Reset</button><label class="chk"><input type="checkbox" id="pr"> Show the prediction</label></div><div class="readout" id="r14"></div>`;
+  p.prepend(c);
+  const B=40;let bins=Array(B).fill(0),dots=[],tot=0,last=null;
+  const dens=(u,n)=>2*Math.sin(n*Math.PI*u)**2;
+  const fire=k=>{const n=V('qn');for(let i=0;i<k;i++){let u;do{u=Math.random()}while(Math.random()*2>dens(u,n));bins[Math.min(B-1,Math.floor(u*B))]++;tot++;last=u;if(dots.length<1500)dots.push([u,Math.random()])}draw()};
+  const reset=()=>{bins=Array(B).fill(0);dots=[];tot=0;last=null;draw()};
+  function draw(){
+    const n=V('qn'),ink=col('--ink'),ac=col('--accent'),hot=col('--hot'),ln=col('--line'),mu=col('--muted');
+    x.clearRect(0,0,W,H);x.strokeStyle=ink;x.lineWidth=2;x.strokeRect(30,12,560,90);x.fillStyle=ac;x.globalAlpha=.7;dots.forEach(d=>{x.beginPath();x.arc(30+d[0]*560,16+d[1]*82,2,0,7);x.fill()});x.globalAlpha=1;
+    if(last!==null){x.fillStyle=hot;x.beginPath();x.arc(30+last*560,57,6,0,7);x.fill()}
+    const mx=Math.max(8,...bins),bw=560/B,base=315;x.strokeStyle=ink;x.beginPath();x.moveTo(30,base);x.lineTo(590,base);x.stroke();
+    bins.forEach((v,k)=>{const h=v/mx*170;x.fillStyle=ac;x.globalAlpha=.8;x.fillRect(30+k*bw+1,base-h,bw-2,h);x.globalAlpha=1});
+    if($('#pr').checked&&tot>0){x.strokeStyle=hot;x.lineWidth=3;x.beginPath();for(let k=0;k<=B*4;k++){const u=k/(B*4),e=tot*dens(u,n)/B,y=base-e/mx*170;k?x.lineTo(30+u*560,y):x.moveTo(30+u*560,y)}x.stroke()}
+    x.fillStyle=mu;x.font='12px system-ui';x.textAlign='left';x.fillText('screen: each dot is one electron',34,118);x.fillText('tally of dots by position',34,140);
+    $('#r14').innerHTML=`Electrons fired: <b>${tot}</b>.${last!==null?' The last one landed '+f(last*100,0)+'% of the way across.':''} ${tot<5?'Can you guess where the next one lands?':tot<100?'The pattern is starting to show up.':'Now the pattern is hard to miss.'}`;
+  }
+  bind(['qn'],reset);$('#pr').onchange=draw;
+  $('#f1').onclick=()=>fire(1);$('#f50').onclick=()=>fire(50);$('#f1k').onclick=()=>fire(1000);$('#rs').onclick=reset;draw();
+}
+/* 15 Information theory */
+function b15(p){
+  const [c,x]=mkCanvas(620,220,'Graph of surprise per coin flip versus chance of heads');
+  p.innerHTML=`<h4>A. Twenty questions, but with numbers</h4><div class="readout">I am thinking of a whole number from 1 to 100.
+  <div class="row"><label for="gu">Your guess</label><input type="number" id="gu" min="1" max="100"><button id="gb" class="pri">Guess</button><button id="gn" class="ghost">New number</button><button id="ga">Show the halving trick</button></div><div id="gfb" aria-live="polite"></div></div>
+  <h4>B. How surprising is a coin?</h4><div class="ctls">${sl('cp','Chance of heads',0,100,1,50,'%')}</div><div class="readout" id="r15"></div>`;
+  p.insertBefore(c,$('#r15'));
+  let secret=1+Math.floor(Math.random()*100),g=0;
+  const msg=t=>$('#gfb').innerHTML=t;
+  $('#gb').onclick=()=>{const v=+$('#gu').value;if(!v||v<1||v>100){msg('Pick a whole number from 1 to 100.');return}g++;
+    if(v===secret)msg(`<span class="pill">Got it</span> in ${g} guess${g===1?'':'es'}. The halving trick never needs more than 7, because 2<sup>7</sup> = 128 is at least 100.`);else msg(`${v<secret?'Higher':'Lower'}. Guesses so far: ${g}.`)};
+  $('#gn').onclick=()=>{secret=1+Math.floor(Math.random()*100);g=0;msg('New number chosen.')};
+  $('#ga').onclick=()=>{let lo=1,hi=100,s=[];while(true){const m=Math.floor((lo+hi)/2);s.push(m);if(m===secret)break;if(m<secret)lo=m+1;else hi=m-1}msg(`Always guess the middle. For this number: ${s.join(' → ')}. That is ${s.length} guess${s.length===1?'':'es'}. Each answer cuts the choices in half.`)};
+  function draw(){
+    const pp=V('cp')/100,H=q=>q<=0||q>=1?0:-q*Math.log2(q)-(1-q)*Math.log2(1-q),ink=col('--ink'),hot=col('--hot'),ln=col('--line'),mu=col('--muted');
+    const X=u=>40+u*540,Y=h=>190-h*160;x.clearRect(0,0,620,220);x.strokeStyle=ln;x.lineWidth=1;x.fillStyle=mu;x.font='12px system-ui';x.textAlign='center';
+    [0,.25,.5,.75,1].forEach(u=>{x.beginPath();x.moveTo(X(u),30);x.lineTo(X(u),190);x.stroke();x.fillText(u*100+'%',X(u),208)});
+    x.textAlign='right';[0,.5,1].forEach(h=>{x.beginPath();x.moveTo(40,Y(h));x.lineTo(580,Y(h));x.stroke();x.fillText(h,34,Y(h)+4)});x.textAlign='left';x.fillText('bits of surprise per flip',44,20);
+    x.strokeStyle=ink;x.lineWidth=2.5;x.beginPath();for(let u=0;u<=1.0001;u+=.005){u?x.lineTo(X(u),Y(H(u))):x.moveTo(X(u),Y(H(u)))}x.stroke();
+    x.fillStyle=hot;x.beginPath();x.arc(X(pp),Y(H(pp)),7,0,7);x.fill();
+    $('#r15').innerHTML=`Heads ${f(pp*100,0)}% of the time → <span class="big">${f(H(pp),3)} bits</span> per flip.<br>A fair coin is the hardest to predict, so it carries the most information: exactly 1 bit. A coin that is almost always heads tells you very little. <span class="note-small">H = −p log<sub>2</sub> p − (1−p) log<sub>2</sub>(1−p)</span>`;
+  }
+  bind(['cp'],draw);draw();
+}
+/* 16 Chaos */
+function b16(p){
+  const [c,x]=mkCanvas(620,300,'Two population curves that start almost the same and then drift apart');
+  p.innerHTML=`<div class="btns">${[[2.5,'k = 2.5 (calm)'],[3.2,'k = 3.2 (two-step)'],[3.5,'k = 3.5 (four-step)'],[3.9,'k = 3.9 (chaos)']].map(a=>`<button data-k="${a[0]}">${a[1]}</button>`).join('')}</div>
+  <div class="ctls">${sl('kk','Growth setting k',.5,4,.01,3.9)}${sl('x0','Starting amount (0 to 1)',.1,.9,.01,.2)}</div>
+  <div class="row"><label for="df">Second run starts different by</label><select id="df"><option value="0.1">0.1</option><option value="0.001">0.001</option><option value="0.000001" selected>0.000001 (one millionth)</option></select></div><div class="readout" id="r16"></div>`;
+  p.prepend(c);
+  function draw(){
+    const k=V('kk'),x0=V('x0'),d=+$('#df').value,ink=col('--ink'),hot=col('--hot'),ln=col('--line'),mu=col('--muted');
+    const N=60,A=[x0],B=[Math.min(.999,x0+d)];for(let i=0;i<N;i++){A.push(k*A[i]*(1-A[i]));B.push(k*B[i]*(1-B[i]))}
+    const X=i=>40+i*(560/N),Y=v=>260-v*230;x.clearRect(0,0,620,300);x.strokeStyle=ln;x.lineWidth=1;x.fillStyle=mu;x.font='12px system-ui';x.textAlign='center';
+    for(let i=0;i<=N;i+=10){x.beginPath();x.moveTo(X(i),30);x.lineTo(X(i),260);x.stroke();x.fillText(i,X(i),278)}
+    x.textAlign='right';[0,.5,1].forEach(v=>{x.beginPath();x.moveTo(40,Y(v));x.lineTo(600,Y(v));x.stroke();x.fillText(v,34,Y(v)+4)});x.textAlign='left';x.fillText('step number',520,296);x.fillText('population (share of the maximum)',44,20);
+    [[A,ink,3],[B,hot,2.5]].forEach(s=>{x.strokeStyle=s[1];x.lineWidth=s[2];x.beginPath();s[0].forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v)));x.stroke()});
+    let br=-1;for(let i=0;i<=N;i++)if(Math.abs(A[i]-B[i])>.1){br=i;break}
+    $('#r16').innerHTML=`Rule: next = k × now × (1 − now). First steps of the dark run: ${A.slice(0,6).map(v=>f(v,4)).join(', ')}…<br>${br<0?'The two runs stay within 0.1 of each other for all 60 steps. The future is predictable.':`<span class="big">The two runs split apart at step ${br}.</span> After that, a forecast from the first run is useless for the second.`} <span class="note-small">(dark = run 1, orange = run 2)</span>`;
+  }
+  p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{$('#kk').value=b.dataset.k;$('#kko').textContent=$('#kk').value;draw()});
+  bind(['kk','x0'],draw);$('#df').onchange=draw;draw();
+}
+/* 17 Black-Scholes toy */
+function b17(p){
+  p.innerHTML=`<div class="readout">A stock costs <b>$100</b> today. Tomorrow it goes up or down. A <b>ticket</b> pays you the amount the stock ends <i>above</i> $100 (and $0 if it ends below). This is a math game, not investing advice.</div>
+  <div class="ctls">${sl('up','If it goes up, it becomes ($)',105,150,5,120)}${sl('dn','If it goes down, it becomes ($)',70,100,5,90)}${sl('pu','Chance it goes up',10,90,5,50,'%')}</div>
+  <div class="row"><label for="gs">Before you look: what would you pay for the ticket? $</label><input type="number" id="gs" min="0" max="100" step="0.5"><button id="rv" class="pri">Reveal the fair price</button></div>
+  <div class="readout" id="r17"></div>
+  <div class="btns"><button id="sm">Simulate 1,000 days</button><button id="sr" class="ghost">Reset</button></div><div class="readout" id="s17">Run the simulation to see the average payout settle down.</div>`;
+  let tot=0,days=0,shown=false;
+  const calc=()=>{const U=V('up'),D=V('dn'),pr=V('pu')/100,pu=Math.max(U-100,0),pd=Math.max(D-100,0);return{U,D,pr,pu,pd,ev:pr*pu+(1-pr)*pd}};
+  function show(){if(!shown)return;const k=calc(),g=+$('#gs').value;
+    $('#r17').innerHTML=`Up: ${f((k.U-100),0)}% change, ticket pays $${k.pu}. Down: ${f(k.D-100,0)}% change, ticket pays $${k.pd}.<br>Average payout = ${f(k.pr*100,0)}% × $${k.pu} + ${f((1-k.pr)*100,0)}% × $${k.pd} = <span class="big">$${f(k.ev,2)}</span><br>${$('#gs').value?`You guessed $${f(g,2)}: ${Math.abs(g-k.ev)<=0.5?'very close.':g>k.ev?'that is above the fair price, so you would lose money on average.':'that is below the fair price, so a seller would lose money on average.'}`:''}`}
+  $('#rv').onclick=()=>{shown=true;show()};
+  bind(['up','dn','pu'],()=>{tot=0;days=0;$('#s17').textContent='Settings changed. Run the simulation again.';show()});
+  $('#sm').onclick=()=>{const k=calc();for(let i=0;i<1000;i++){tot+=Math.random()<k.pr?k.pu:k.pd;days++}$('#s17').innerHTML=`After ${days.toLocaleString()} days the average payout is <span class="big">$${f(tot/days,2)}</span>. The math says the fair price is $${f(k.ev,2)}. More days, closer match.`};
+  $('#sr').onclick=()=>{tot=0;days=0;$('#s17').textContent='Run the simulation to see the average payout settle down.'};
+  $('#gs').addEventListener('input',show);
+}
+
+/* ---------- content ---------- */
+const EQ=[
+{id:1,name:'The Pythagorean Theorem',short:'a² + b² = c²',eq:'a² + b² = c²',year:'about 500 BCE',time:6,level:'direct',build:b1,
+ hook:'Build a square on every side of a right triangle. The two smaller squares always add up to the big one. Every time.',
+ std:[['8.G.B.6','explain a proof of the Pythagorean Theorem and its converse'],['8.G.B.7','use it to find unknown side lengths in right triangles'],['8.G.B.8','use it to find distances between points on a coordinate grid'],['Secondary Math I · G.GPE.7','use distances on a coordinate grid to find perimeters'],['Secondary Math II · G.SRT.8','solve right triangles in applied problems']],
+ quiz:{q:'A TV is 48 in wide and 27 in tall. About how long is its diagonal?',o:['21 in','75 in','55 in','3,033 in'],a:2,why:'48² + 27² = 2,304 + 729 = 3,033, and √3,033 ≈ 55.'},
+ think:'Builders make perfect corners with a rope marked 3, 4, 5. Why must a triangle with those sides have a square corner?',
+ teach:'Four whole-number pairs with sides up to 12: 3-4-5, 6-8-10, 5-12-13, 9-12-15. Press on the converse: if a² + b² = c², the angle is exactly 90°.'},
+{id:2,name:'Logarithms',short:'log xy = log x + log y',eq:'log xy = log x + log y',year:'1614',time:8,level:'direct',build:b2,
+ hook:'Fold a sheet of paper in half again and again. The stack doubles each time. How many folds to reach the Moon? A logarithm answers that without any giant multiplication.',
+ std:[['8.EE.A.1','properties of integer exponents (2ᵃ × 2ᵇ = 2ᵃ⁺ᵇ)'],['8.EE.A.3','powers of ten to compare very large sizes'],['Secondary Math I · F.LE.1–3','doubling is exponential growth, and it soon beats linear growth']],
+ quiz:{q:'log₁₀(1,000) = 3 and log₁₀(100) = 2. Using the log rule, what is log₁₀(1,000 × 100)?',o:['6','5','3','300'],a:1,why:'Multiplying adds the logs: 3 + 2 = 5. Check: 1,000 × 100 = 100,000 = 10⁵.'},
+ think:'Before calculators, people used log tables to turn hard multiplication into easy addition. Why does that work?',
+ teach:'Moon needs 42 folds with 0.1 mm paper (the Burj Khalifa needs 23, Everest 27). Real paper tops out near 12 folds. A log is an exponent. Part C is the 8.EE.A.1 product rule; the log language is the stretch. Logarithms themselves (F.LE.4) are Secondary Math III.'},
+{id:3,name:'Calculus',short:'df/dt = lim [f(t+h) − f(t)] / h',eq:'df/dt = lim<sub>h→0</sub> [ f(t+h) − f(t) ] / h',year:'1680s',time:7,level:'link',build:b3,
+ hook:'How fast is a car going at this exact instant? Speed needs two moments, so squeeze the gap between them until it nearly vanishes.',
+ std:[['8.EE.B.5','graph proportional relationships; slope and unit rate'],['8.F.B.4','rate of change from a function’s graph or table']],
+ quiz:{q:'A car’s distance is d = t² meters. Using what you saw, how fast is it going at t = 4 seconds?',o:['4 m/s','16 m/s','12 m/s','8 m/s'],a:3,why:'At time t the speed settles on 2 × t. At t = 4 that is 8 m/s.'},
+ think:'A speedometer shows your speed at one instant, but speed is distance divided by time. How can an instant have a speed?',
+ teach:'Average speed from t to t+h is exactly 2t + h, so it approaches 2t. Calculus itself is beyond 7–9; the direct link is slope as a rate of change.'},
+{id:4,name:'The Law of Gravity',short:'F = G m₁m₂ / d²',eq:'F = G m<sub>1</sub>m<sub>2</sub> / d<sup>2</sup>',year:'1687',time:5,level:'link',build:b4,
+ hook:'Double the distance and gravity does not halve. It drops to a quarter. Light and sound spread out the same way.',
+ std:[['7.RP.A.2','compare proportional relationships (more mass, more pull) with this inverse-square one'],['8.EE.A.1','exponents, including d² in the denominator']],
+ quiz:{q:'You move from distance 2 to distance 4, twice as far. The pull becomes…',o:['half as strong','one quarter as strong','the same','twice as strong'],a:1,why:'Pull ∝ 1/d². Twice the distance means 1/2² = 1/4 of the pull.'},
+ think:'Astronauts on the space station feel about 89% of the gravity you feel on the ground, yet they float. Why?',
+ teach:'The station is only about 6% farther from Earth’s center than the ground, so 1/1.06² ≈ 0.89. They float because they are in constant free fall around Earth.'},
+{id:5,name:'The Square Root of −1',short:'i² = −1',eq:'i² = −1',year:'1500s–1700s',time:6,level:'direct',build:b5,
+ hook:'No ordinary number squared gives −1, so mathematicians invented one. It turns out that multiplying by it is just a quarter-turn.',
+ std:[['8.G.A.3','describe rotations using coordinates: (x, y) → (−y, x)'],['Secondary Math II · N.CN.1–2','complex numbers and i² = −1'],['Secondary Math I · G.CO.2, 4–5','rotations as moves on points in the plane']],
+ quiz:{q:'Start at 1 on the number line and multiply by i twice. Where do you land?',o:['1','−1','i','−i'],a:1,why:'Each × i is a quarter-turn, so two make a half-turn from 1 to −1. That is i × i = −1.'},
+ think:'If multiplying by −1 is a half-turn, what could multiplying by i possibly be? Does it surprise you that “imaginary” numbers describe rotation?',
+ teach:'(a + bi) × i = −b + ai matches the rotation (x, y) → (−y, x). Four turns return home: i⁴ = 1. Good bridge for 8.G.A.3 students.'},
+{id:6,name:'Euler’s Formula for Polyhedra',short:'V − E + F = 2',eq:'V − E + F = 2',year:'1750',time:8,level:'fun',build:b6,
+ hook:'Count the corners, edges, and faces of any solid shape that has no holes. Do V − E + F and you get 2. Always.',
+ std:[['7.EE.B.4','solve a simple equation for a missing quantity (V − E + F = 2)']],
+ quiz:{q:'A mystery solid has 12 corners and 18 edges. How many faces does it have?',o:['6','8','10','12'],a:1,why:'12 − 18 + F = 2, so F = 8. (It is a hexagonal prism.)'},
+ think:'This works for cubes and pyramids, but a donut shape gives 0 instead of 2. What does the hole change?',
+ teach:'No direct standard; use for vocabulary (vertex, edge, face) and a one-step equation. A torus gives 0. Students can count edges from the wireframe or reveal the counts.'},
+{id:7,name:'The Normal Distribution',short:'the bell curve',eq:'f(x) = 1/√(2πσ²) · e<sup>−(x−μ)²/2σ²</sup>',year:'1809',time:7,level:'direct',build:b7,
+ hook:'Drop balls through a maze of pegs. Every single bounce is a coin flip, yet a bell shape rises out of the chaos.',
+ std:[['7.SP.C.6','long-run relative frequency approximates probability'],['7.SP.C.7','develop and compare probability models'],['7.SP.C.8','probabilities of compound events']],
+ quiz:{q:'Why do so few balls land in the far-left bin?',o:['The pegs are tilted','It needs every single bounce to go left','Balls prefer the middle','Gravity pulls right'],a:1,why:'All-left needs n lefts in a row, a 1 in 2ⁿ chance. The middle has many more paths to it.'},
+ think:'Heights, test scores, and apple weights are often bell-shaped. What might they have in common with a lot of tiny coin flips?',
+ teach:'The bin number is the count of right-bounces, so the pile follows C(n,k)/2ⁿ (the prediction dots). Use the drop 1 button for “one outcome is random,” 500 for “the shape is predictable.”'},
+{id:8,name:'The Wave Equation',short:'∂²u/∂t² = c² ∂²u/∂x²',eq:'∂²u/∂t² = c² ∂²u/∂x²',year:'1746',time:6,level:'link',build:b8,
+ hook:'Guitar strings, ocean swells, sound, even light: they all travel by one rule. Speed is how often times how long.',
+ std:[['8.F.B.5','describe a function’s behavior from its graph'],['7.RP.A.2','proportional reasoning: speed grows in proportion to frequency']],
+ quiz:{q:'A wave has frequency 2 per second and wavelength 3 meters. How fast does it travel?',o:['1.5 m/s','5 m/s','6 m/s','9 m/s'],a:2,why:'speed = f × λ = 2 × 3 = 6 m/s.'},
+ think:'A short guitar string makes a higher note than a long one. Use f × λ = speed to explain why.',
+ teach:'Animation is slowed ×0.25 so waves are visible. With speed fixed, frequency and wavelength are inversely related, a nice contrast with proportional. Periodic-function standards (F.TF) are in Secondary Math III.'},
+{id:9,name:'The Fourier Transform',short:'f̂(ω) = ∫ f(x) e^(−2πixω) dx',eq:'f̂(ω) = ∫ f(x) e<sup>−2πixω</sup> dx',year:'1822',time:6,level:'fun',build:b9,
+ hook:'Any repeating signal is a recipe: add the right amounts of simple waves. Your phone uses this idea to store music and photos.',
+ std:[['8.F.B.5','read the shape of a graph (rising, falling, repeating)']],
+ quiz:{q:'True or false: adding smooth sine waves together can make a wave with flat tops and sharp corners.',o:['True, with enough of the right ingredients','False, smooth plus smooth is always smooth'],a:0,why:'The square wave preset is built only from sine waves. More ingredients make the corners sharper.'},
+ think:'A square wave has sharp corners but is built from smooth waves. How can smooth things add up to something sharp?',
+ teach:'Square: 1, 1/3, 1/5 on odd waves. Sawtooth: 1, −1/2, 1/3, −1/4… More terms sharpen corners. Enrichment only; related ideas sit behind MP3 and JPEG compression. Periodic-function standards (F.TF) are in Secondary Math III.'},
+{id:10,name:'The Navier–Stokes Equations',short:'ρ(∂v/∂t + v·∇v) = −∇p + μ∇²v',eq:'ρ ( ∂v/∂t + v·∇v ) = −∇p + μ∇²v + f',year:'1822–1845',time:7,level:'direct',build:b10,
+ hook:'Water speeds up when a pipe narrows. The equations that govern all flowing water are so hard that proving certain things about them is worth a $1,000,000 prize.',
+ std:[['7.G.B.4','area of a circle'],['7.RP.A.2','proportional relationships and constants'],['8.EE.A.1','exponents: area grows with the diameter squared']],
+ quiz:{q:'The pipe’s diameter shrinks from 10 cm to 5 cm. The water’s speed in the narrow part becomes…',o:['2 times as fast','3 times as fast','4 times as fast','8 times as fast'],a:2,why:'Area depends on diameter squared. Half the diameter is a quarter of the area, so the same water must move 4× as fast.'},
+ think:'Why does water shoot farther when you put your thumb over a garden hose? What happens to the speed if the opening is half as wide?',
+ teach:'This is one consequence of the full equations, not the full equation. The Clay Mathematics Institute offers a $1,000,000 Millennium Prize for settling whether smooth solutions always exist in 3D.'},
+{id:11,name:'Maxwell’s Equations',short:'∇·E = ρ/ε₀ …',eq:'∇·E = ρ/ε<sub>0</sub> &nbsp; ∇·B = 0 &nbsp; ∇×E = −∂B/∂t &nbsp; ∇×B = μ<sub>0</sub>(J + ε<sub>0</sub>∂E/∂t)',year:'1865',time:8,level:'direct',build:b11,
+ hook:'Electricity and magnetism turned out to be two sides of one thing. Wiggle a magnet near a coil and you make electricity. Maxwell’s math then predicted waves, and their speed matched light.',
+ std:[['7.RP.A.2','proportional relationships and the constant of proportionality'],['8.EE.A.4','compute with scientific notation']],
+ quiz:{q:'You double the turns of wire and double the magnet speed. The voltage becomes…',o:['2 times as big','3 times as big','4 times as big','the same'],a:2,why:'Voltage = turns × speed, so 2 × 2 = 4 times as big.'},
+ think:'Radio, Wi-Fi, microwaves, visible light, and X-rays are the same kind of wave. What do you think makes them different?',
+ teach:'The model V = turns × speed is simplified with made-up units. Targets 12, 18, 24, and 30 each have 4 whole-number ways with factors up to 10. Light speed ≈ 3 × 10⁸ m/s, the scientific-notation practice.'},
+{id:12,name:'The Second Law of Thermodynamics',short:'dS ≥ 0',eq:'dS ≥ 0',year:'1850s',time:7,level:'direct',build:b12,
+ hook:'A dropped cup shatters but never un-shatters. It is not impossible. The messy states just vastly outnumber the neat one.',
+ std:[['7.SP.C.8','probabilities of compound events, using simulation'],['8.EE.A.1','powers of 2 to count arrangements']],
+ quiz:{q:'Only 4 particles. What is the chance all 4 are on the left after a bounce?',o:['1/4','1/8','1/16','1/2'],a:2,why:'Each particle is left with probability 1/2, so (1/2)⁴ = 1/16.'},
+ think:'Your room gets messy on its own but never tidies itself. Is that a law of physics, or just very good odds?',
+ teach:'(1/2)ⁿ for all-left: 24 particles is about 1 in 16.8 million. Real gas has about 10²³ particles. Entropy counts arrangements; energy input can still make order locally.'},
+{id:13,name:'Relativity',short:'E = mc²',eq:'E = mc²',year:'1905',time:6,level:'direct',build:b13,
+ hook:'Multiply a tiny mass by the speed of light squared and you get a gigantic number. Matter hides an enormous amount of energy.',
+ std:[['8.EE.A.1','integer exponent rules: squaring 3 × 10⁸'],['8.EE.A.3','scientific notation for huge numbers'],['8.EE.A.4','multiply with scientific notation']],
+ quiz:{q:'An object has a mass of 1 kg. Using c² = 9 × 10¹⁶, what is E = mc²?',o:['3 × 10⁸ J','9 × 10⁸ J','9 × 10¹⁶ J','3 × 10¹⁶ J'],a:2,why:'E = 1 × 9 × 10¹⁶ = 9 × 10¹⁶ joules.'},
+ think:'If a paperclip holds this much energy, why do we not notice it in everyday life?',
+ teach:'1 g gives 9 × 10¹³ J, about 21.5 kilotons of TNT. In practice only a tiny fraction of mass converts (around 0.1% in nuclear reactions). Comparisons are rounded estimates.'},
+{id:14,name:'Schrödinger’s Equation',short:'iħ ∂ψ/∂t = Ĥψ',eq:'iħ ∂ψ/∂t = Ĥψ',year:'1926',time:7,level:'direct',build:b14,
+ hook:'Tiny particles do not have an exact location, only odds. Fire electrons one at a time: each dot is unpredictable, yet together they paint a very predictable picture.',
+ std:[['7.SP.C.6','long-run relative frequency approximates probability'],['7.SP.C.7','develop a probability model and compare it with observed data']],
+ quiz:{q:'The equation cannot tell you where the next electron lands. What can it tell you?',o:['The exact spot of every electron','Nothing at all','How likely each region is, which shows up in the long run','The electron’s color'],a:2,why:'It predicts probabilities. A single hit is unpredictable, but thousands of hits trace out the pattern.'},
+ think:'One outcome is unpredictable, but thousands together are predictable. Where else have you seen that?',
+ teach:'We use the simplest case, a particle in a 1D box, with probability density 2sin²(nπx). Same long-run-frequency idea as any 7.SP.C.6 experiment.'},
+{id:15,name:'Information Theory',short:'H = −Σ p log p',eq:'H = −Σ p<sub>i</sub> log<sub>2</sub> p<sub>i</sub>',year:'1948',time:7,level:'link',build:b15,
+ hook:'How much information is in a message? Shannon counted it in yes/no questions, called bits. Surprising messages carry more.',
+ std:[['7.SP.C.5','probability as a number from 0 to 1 describing likelihood'],['8.EE.A.1','powers of 2: each yes/no question doubles what you can tell apart']],
+ quiz:{q:'How many yes/no questions are enough to find a secret number from 1 to 16?',o:['2','4','8','16'],a:1,why:'Each question halves the choices: 16 → 8 → 4 → 2 → 1. That is 4 questions, since 2⁴ = 16.'},
+ think:'“The sun rose today” carries almost no information, but “it snowed in July” carries a lot. Why?',
+ teach:'1 to 100 needs at most 7 questions since 2⁷ = 128. The fair coin has the maximum entropy (1 bit). Links to file compression.'},
+{id:16,name:'Chaos Theory',short:'xₙ₊₁ = k xₙ(1 − xₙ)',eq:'x<sub>n+1</sub> = k x<sub>n</sub> (1 − x<sub>n</sub>)',year:'1975',time:8,level:'stretch',build:b16,
+ hook:'Multiply, subtract from one, repeat. A rule that simple can be perfectly calm, or impossible to forecast. Weather works a bit like this.',
+ std:[['8.F.A.1','a function is a rule giving one output for each input'],['Secondary Math I · F.IF.3, F.BF.2','recursive rules; sequences as functions']],
+ quiz:{q:'With k = 3.9, two runs start one millionth apart. By step 40, they are…',o:['still nearly identical','completely different','both zero','both one'],a:1,why:'Tiny differences grow quickly when the rule is chaotic, so the runs end up far apart.'},
+ think:'If tiny measuring errors grow, can anyone forecast the weather a month ahead? Why is tomorrow easier than next month?',
+ teach:'Settles near k = 2.5, flips between two values near 3.2, four near 3.5, chaotic near 3.9. Sensitive dependence is the key idea. Calling this recursion rather than modeling keeps it at grade level.'},
+{id:17,name:'The Black–Scholes Equation',short:'½σ²S²V″ + rSV′ + V̇ − rV = 0',eq:'½σ²S² ∂²V/∂S² + rS ∂V/∂S + ∂V/∂t − rV = 0',year:'1973',time:8,level:'link',build:b17,
+ hook:'A ticket pays you if a price goes up. What is a fair price for it? Start with the odds and the payouts.',
+ std:[['7.RP.A.3','percent change in multi-step problems'],['7.SP.C.7','probability models'],['7.SP.C.6','long-run averages settle down']],
+ quiz:{q:'A stock goes to $120 or $90 with equal chance. The ticket pays what the stock ends above $100. What is a fair price?',o:['$0','$5','$10','$20'],a:2,why:'Half the time it pays $20 and half the time $0, so the average is $10.'},
+ think:'If you could make the same bet a million times, what would your average result be? Can a bet be fair and still lose today?',
+ teach:'Toy version: fair price equals average payout. Real Black–Scholes models continuous random movement and uses a hedging argument so the price does not depend on whether you believe the stock will rise. Not investment advice.'}
+];
+const LVL={direct:'Direct fit',link:'Good connection',stretch:'Stretch',fun:'Pure enrichment'};
+const TIER={direct:'Teaches the standard',link:'Supports the standard',stretch:'Above grade level',fun:'Mostly just wonder'};
+const pick=(id,pre)=>EQ[id-1].std.filter(t=>t[0].startsWith(pre));
+/* Each grade lists stations ranked by fit to THAT grade's standards, strongest first. */
+const GR=[
+ {k:'g7',badge:'7',title:'7th Grade',sub:'Probability and proportion',pre:'7.',
+  items:[[7,'direct'],[14,'direct'],[12,'direct'],[10,'direct'],[11,'direct'],[17,'link'],[15,'link'],[4,'link'],[6,'fun']]},
+ {k:'g8',badge:'8',title:'8th Grade',sub:'Exponents, geometry, and slope',pre:'8.',
+  items:[[1,'direct'],[13,'direct'],[2,'direct'],[5,'direct'],[11,'direct'],[3,'link'],[8,'link'],[16,'link'],[9,'fun']]},
+ {k:'s1',badge:'ƒ',title:'Secondary Math I',sub:'Functions, sequences, and transformations',pre:'Secondary Math I · ',
+  items:[[2,'direct'],[16,'link'],[5,'link'],[1,'link']]},
+ {k:'s2',badge:'i',title:'Secondary Math II',sub:'Complex numbers and right triangles',pre:'Secondary Math II · ',
+  items:[[5,'direct'],[1,'link']]}
+].map(g=>({...g,items:g.items.map(([id,level])=>({id,level,std:pick(id,g.pre)}))}));
+const PLAIN={1:'Short sides squared add up to the long side squared',2:'A shortcut for counting how many times you double',3:'Find speed at one exact moment',4:'Twice as far means one-quarter the pull',5:'A number that spins you a quarter turn',6:'Corners minus edges plus faces always makes 2',7:'Lots of coin flips make a bell-shaped pile',8:'Wave speed is how often times how long',9:'Smooth waves added together make any pattern',10:'Squeeze a pipe and the water speeds up',11:'Moving magnets make electricity, and light is a wave',12:'Messy is far more likely than neat',13:'A tiny bit of mass holds a huge amount of energy',14:'Tiny particles have odds, not exact spots',15:'Surprising messages carry more information',16:'Tiny changes can grow into huge differences',17:'The fair price of a bet is its average payout'};
+const keyOf=(g,id)=>g+'-eq-'+id;
+const find=k=>{const m=/^(g7|g8|s1|s2)-eq-(\d+)$/.exec(k);if(!m)return null;const g=GR.find(x=>x.k===m[1]);const i=g.items.findIndex(x=>x.id===+m[2]);return i<0?null:{g,i,it:g.items[i],s:EQ[+m[2]-1]}};
+let openKey=null;
+
+const ICON={1:'📐',2:'🌙',3:'🚗',4:'🍎',5:'🔄',6:'🎲',7:'🔔',8:'🌊',9:'🎶',10:'💧',11:'⚡',12:'🫧',13:'✨',14:'⚛️',15:'💬',16:'🦋',17:'🎟️'};
+const FL=['🌻','🌷','🌼','🌸','🌺','🌹','💐'],bloom=id=>FL[(id-1)%FL.length];
+const SYM={g7:'%',g8:'√',s1:'ƒ',s2:'i'};
+const gOf=k=>GR.find(g=>g.k===k);
+const gStats=g=>({c:g.items.filter(i=>done[i.id]).length,n:g.items.length,min:g.items.reduce((a,i)=>a+EQ[i.id-1].time,0)});
+const seeds=g=>g.items.map(i=>done[i.id]?bloom(i.id):'<span class="seed">🌱</span>').join('');
+const nm=id=>EQ[id-1].name;
+let at={page:'home',g:null,k:null};
+
+function crumbs(g,s){
+  return `<nav class="crumbs" aria-label="You are here"><a class="btn pri" href="#home">← Main page</a>${g?`<span aria-hidden="true">/</span><a class="crumb" href="#${g.k}">${g.title}</a>`:''}${s?`<span aria-hidden="true">/</span><span class="here" aria-current="page">${s.name}</span>`:''}</nav>`;
+}
+function updateRail(){
+  const n=Object.keys(done).length;
+  $('#railList').innerHTML=GR.map(g=>{
+    const st=gStats(g),cur=at.g===g.k;
+    const sub=cur?`<ul class="rs" aria-label="${g.title} stations">${g.items.map(it=>{const k=keyOf(g.k,it.id),c=at.k===k;return `<li class="${c?'current':''}"><a href="#${k}" ${c?'aria-current="page"':''}>${done[it.id]?bloom(it.id):ICON[it.id]} ${nm(it.id)}</a></li>`}).join('')}</ul>`:'';
+    return `<li data-g="${g.k}" class="${cur?'current':''}"><a class="rg" href="#${g.k}" ${at.g===g.k&&!at.k?'aria-current="page"':''}><span class="dot" aria-hidden="true">${SYM[g.k]}</span>${g.title}<span class="cnt">${st.c}/${st.n}</span></a>${sub}</li>`}).join('');
+  $('#railProg').textContent=`${n} of 17 stations checked`;
+  const h=$('#railhome');if(at.page==='home')h.setAttribute('aria-current','page');else h.removeAttribute('aria-current');
+}
+function updateProg(){
+  const n=Object.keys(done).length;
+  updateRail();
+  const gd=$('#garden');
+  if(gd){gd.innerHTML=EQ.map(s=>`<span class="slot ${done[s.id]?'on':''}" title="${s.name}">${done[s.id]?bloom(s.id):'🌱'}</span>`).join('');gd.setAttribute('aria-label',`${n} of 17 stations checked`)}
+  const pr=$('#prog');if(pr)pr.innerHTML=`<b>${n}</b> / 17 ${n===17?'🎉':'🌻'}`;
+}
+function markDone(id){if(!done[id]){done[id]=1;LS.set('eqlab-done',done)}updateProg()}
+function renderBook(){const o=$('#bookout');if(!o)return;const t=EQ.filter(s=>notes[s.id]&&notes[s.id].trim()).map(s=>`#${s.id} ${s.name}\n${notes[s.id].trim()}`).join('\n\n');o.textContent=t||'Nothing yet. Write a thought in the box at the bottom of any station.'}
+function quiz(root,k){
+  root.innerHTML=`<p class="q">${k.q}</p><div class="opts">${k.o.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div><p class="fb" aria-live="polite"></p>`;
+  root.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const fb=root.querySelector('.fb');
+    if(+b.dataset.i===k.a){b.classList.add('right');fb.innerHTML='<b>🌻 Yes!</b> '+k.why+' <b>Station checked off.</b>';root.querySelectorAll('.opt').forEach(x=>x.disabled=true);markDone(cur)}
+    else{b.classList.add('wrong');b.disabled=true;fb.textContent='🍂 Not quite. Go back up to the activity, play with it again, then try another answer.'}})
+}
+function renderKey(){
+  return `<section class="fitkey" aria-labelledby="fk-h"><h2 id="fk-h">Standards Match</h2><ul class="fkgrid">${['direct','link','stretch','fun'].map(l=>`<li class="fk f-${l}"><span class="fkn">${LVL[l]}</span><span class="fkd">${TIER[l]}</span></li>`).join('')}</ul></section>`;
+}
+
+/* ---------- pages ---------- */
+function renderHome(el){
+  el.innerHTML=`<header class="hero">
+    <svg class="sun" viewBox="0 0 170 170" aria-hidden="true"><g stroke="#f2b632" stroke-width="7" stroke-linecap="round">${[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>`<line x1="85" y1="6" x2="85" y2="22" transform="rotate(${a} 85 85)"/>`).join('')}</g><circle cx="85" cy="85" r="44" fill="#f6c453"/></svg>
+    <div class="floaties" aria-hidden="true"><span style="left:46%;top:10%">π</span><span style="left:60%;top:66%">∑</span><span style="left:36%;top:70%">√</span><span style="left:72%;top:22%">∞</span><span style="left:4%;top:76%">÷</span><span style="left:26%;top:6%">×</span></div>
+    <p class="eyebrow">Math elective · Utah Core standards</p>
+    <h1>🌿 Equation Lab</h1>
+    <p class="lede">17 equations that shaped our world. Pick a grade section, open a station, and watch your garden grow.</p>
+    <div class="garden" id="garden" role="img"></div><div class="prog" id="prog" aria-live="polite"></div>
+  </header>
+  ${renderKey()}
+  <h2 class="sech">Choose your grade section</h2>
+  <div class="gcards">${GR.map(g=>{const st=gStats(g);return `<a class="gcard" data-g="${g.k}" href="#${g.k}"><span class="gbadge" aria-hidden="true">${SYM[g.k]}</span><span><span class="gtitle">${g.title}</span><span class="gsub">${g.sub}</span></span><span class="gfoot"><span aria-hidden="true">${seeds(g)} <b>${st.c}/${st.n}</b></span><span class="gpill">${st.n} stations · about ${st.min} min</span></span></a>`}).join('')}</div>
+  <p><a class="btn" href="#notebook">📓 Open my lab notebook</a></p>`;
+}
+function renderGrade(el,g){
+  const idx=GR.indexOf(g),prev=GR[idx-1],next=GR[idx+1],st=gStats(g);
+  let last='';
+  const list=g.items.map(it=>{
+    let head='';
+    if(it.level!==last){if(last)head+='</div>';last=it.level;head+=`<h3 class="tier f-${it.level}"><span class="tname">${LVL[it.level]}</span><span class="tdesc">${TIER[it.level]}</span></h3><div class="slist">`}
+    const s=EQ[it.id-1];
+    return head+`<a class="scard f-${it.level}" href="#${keyOf(g.k,it.id)}"><span class="sico" aria-hidden="true">${ICON[it.id]}</span><span><span class="stitle">${s.name}</span><span class="splain">${PLAIN[it.id]}</span></span><span class="sside"><span class="slab">${LVL[it.level]}</span><span>⏱ ${s.time} min</span>${done[it.id]?`<span>${bloom(it.id)} Checked off</span>`:''}</span></a>`}).join('')+'</div>';
+  el.innerHTML=`${crumbs(g)}
+  <header class="st-head" data-g="${g.k}"><span class="num" aria-hidden="true">${SYM[g.k]}</span><div><p class="eyebrow">Grade section</p><h2>${g.title}</h2></div></header>
+  <p class="lede">${g.sub}. ${st.n} stations, about ${st.min} minutes in all. They run from the strongest match to the standards down to pure wonder.</p>
+  ${list}
+  <div class="pager">${prev?`<a class="btn ghost" href="#${prev.k}">← ${prev.title}</a>`:`<span></span>`}<a class="btn pri" href="#home">Main page</a>${next?`<a class="btn ghost" href="#${next.k}">${next.title} →</a>`:`<span></span>`}</div>`;
+}
+function renderStation(el,r){
+  const {g,i,it,s}=r;cur=s.id;
+  const prev=g.items[i-1],next=g.items[i+1];
+  el.innerHTML=`${crumbs(g,s)}
+  <header class="st-head" data-g="${g.k}"><span class="num" aria-hidden="true">${String(i+1).padStart(2,'0')}</span><div><p class="eyebrow">${g.title} · Station ${i+1} of ${g.items.length}</p><h2>${ICON[s.id]} ${s.name}</h2><p class="meta">⏱ ${s.time} min · 📜 ${s.year} · <span class="fit f-${it.level}"><b>${LVL[it.level]}</b> ${TIER[it.level]}</span></p></div></header>
+  <div class="prose"><p class="hook">${s.hook}</p></div>
+  <div class="depth"><h3>The equation, in plain words</h3><div class="eqbig" aria-label="Equation">${s.eq}</div><p class="plain">${PLAIN[s.id]}.</p></div>
+  <section class="panel"><h3>Standards Match</h3>${it.std.length?`<ul class="stds">${it.std.map(t=>`<li><b>${t[0]}</b> ${t[1]}</li>`).join('')}</ul>`:'<p>This station is for wonder. It does not target a Utah Core standard.</p>'}</section>
+  <section class="lab"><h3><span class="tag">Play</span>Try it</h3><div id="play"></div></section>
+  <section class="lab"><h3><span class="tag">Check</span>Check your thinking</h3><div id="chk"></div></section>
+  <section class="panel think"><h3>💭 Think about it</h3><p>${s.think}</p><label for="note" class="note-small">Your notes (saved in this browser)</label><textarea id="note"></textarea><p class="note-small">${docLink()}</p></section>
+  <aside class="teach"><b>🍎 Teacher note.</b> ${s.teach}</aside>
+  <div class="pager">${prev?`<a class="btn ghost" href="#${keyOf(g.k,prev.id)}">← ${nm(prev.id)}</a>`:`<a class="btn ghost" href="#${g.k}">← ${g.title}</a>`}<a class="btn" href="#home">Main page</a>${next?`<a class="btn pri" href="#${keyOf(g.k,next.id)}">${nm(next.id)} →</a>`:`<a class="btn pri" href="#${g.k}">Back to ${g.title}</a>`}</div>`;
+  s.build($('#play'));quiz($('#chk'),s.quiz);
+  const ta=$('#note');ta.value=notes[s.id]||'';ta.oninput=()=>{notes[s.id]=ta.value;LS.set('eqlab-notes',notes)};
+}
+function renderNotebook(el){
+  el.innerHTML=`${crumbs()}
+  <header class="st-head"><span class="num" aria-hidden="true">📓</span><div><p class="eyebrow">Notes from every station</p><h2>Lab notebook</h2></div></header>
+  <p class="lede">Your 💭 notes stay in this browser only, so copy them somewhere safe.</p>
+  <section class="panel"><p id="bookdoc"></p><div class="btns"><button id="copybtn" class="pri">📋 Copy my notebook</button><span id="copymsg" aria-live="polite"></span></div><pre id="bookout"></pre><textarea id="fallback" hidden readonly aria-label="Notebook text to copy"></textarea></section>
+  <div class="pager"><span></span><a class="btn pri" href="#home">Main page</a><span></span></div>`;
+  $('#bookdoc').innerHTML=docCopy()?`<a class="doclink" href="${docCopy()}" target="_blank" rel="noopener">📓 Open the notebook Google Doc (makes your own copy)</a>`:'<span class="note-small">A Google Doc notebook link will appear here once your teacher adds it.</span> '+docLink();
+  $('#copybtn').onclick=async()=>{const t=$('#bookout').textContent,m=$('#copymsg');try{await navigator.clipboard.writeText(t);m.textContent='Copied.'}catch(e){const fb=$('#fallback');fb.hidden=false;fb.value=t;fb.select();m.textContent='Copy blocked here. Select the text below and copy it.'}};
+  renderBook();
+}
+function route(){
+  let h=(location.hash||'#home').slice(1),el=$('#stage'),m;
+  if(m=/^eq-(\d+)$/.exec(h)){const g=GR.find(g=>g.items.some(i=>i.id===+m[1]));if(g)h=keyOf(g.k,+m[1])}
+  el.innerHTML='';
+  const r=find(h),g=gOf(h);
+  if(r){at={page:'station',g:r.g.k,k:h};renderStation(el,r)}
+  else if(g){at={page:'grade',g:g.k,k:null};renderGrade(el,g)}
+  else if(h==='notebook'){at={page:'notebook',g:null,k:null};renderNotebook(el)}
+  else{at={page:'home',g:null,k:null};renderHome(el)}
+  updateProg();
+  window.scrollTo(0,0);
+}
+$('#tchk').onchange=e=>document.body.classList.toggle('teacher',e.target.checked);
+window.addEventListener('hashchange',route);
+route();
+</script>
+</body>
+</html>
